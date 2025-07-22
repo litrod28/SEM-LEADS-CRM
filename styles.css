@@ -1,0 +1,149 @@
+body {
+    background: #f2f2f2;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+}
+
+#container {
+    max-width: 900px;
+    margin: 40px auto;
+    background: #fff;
+    padding: 24px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px 0 #d0d0d0;
+}
+
+h1 {
+    color: #1877cc;
+}
+
+.row {
+    display: flex;
+    gap: 24px;
+}
+
+.column {
+    flex: 1;
+}
+
+label {
+    display: block;
+    font-size: 15px;
+    margin-top: 14px;
+}
+
+input, select, textarea {
+    width: 100%;
+    margin-top: 7px;
+    font-size: 16px;
+    padding: 7px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background: #29a746;
+    color: #fff;
+    padding: 9px 24px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+button.secondary {
+    background: #cc9318;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #cce0fc;
+    padding: 7px;
+}
+
+th {
+    background: #ebf4fd;
+    color: #1877cc;
+}
+
+.tag {
+    display: inline-block;
+    font-size: 14px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    color: #fff;
+}
+
+.Hot {
+    background: #e63d22;
+}
+
+.Warm {
+    background: #f5a623;
+}
+
+.Cold {
+    background: #1e9fb7;
+}
+
+.NI {
+    background: #707070;
+}
+
+.NRE {
+    background: #b322a6;
+}
+
+#calendar-list {
+    background: #f3feec;
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 16px;
+}
+
+.flex {
+    display: flex;
+    gap: 10px;
+}
+
+.modal-bg {
+    display: none;
+    position: fixed;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: rgba(40, 80, 120, 0.18);
+    z-index: 10;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    left: 50vw; top: 15vh;
+    transform: translate(-50%, 0);
+    background: #fff;
+    min-width: 400px;
+    border-radius: 9px;
+    box-shadow: 0 8px 40px #aaa8;
+    padding: 24px;
+    z-index: 100;
+}
+
+.modal.open, .modal-bg.open {
+    display: block;
+}
+
+#error {
+    color: red;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 700px) {
+    .row { flex-direction: column; }
+    .modal, #container { min-width: unset; }
+}
