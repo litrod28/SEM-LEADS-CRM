@@ -5,7 +5,7 @@
   <title>SEM Leads CRM</title>
   <style>
     body { background: #f2f2f2; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; }
-    #container { max-width: 900px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 10px; box-shadow: 0 2px 12px 0 #d0d0d0; }
+    #container { max-width: 1000px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 10px; box-shadow: 0 2px 12px 0 #d0d0d0; }
     h1 { color: #1877cc; }
     .row { display: flex; gap: 24px;}
     .column { flex: 1; }
@@ -28,12 +28,32 @@
     .modal { display: none; position: fixed; left: 50vw; top: 15vh; transform: translate(-50%, 0); background: #fff; min-width:400px; border-radius:9px; box-shadow:0 8px 40px #aaa8; padding:24px; z-index:100;}
     .modal.open, .modal-bg.open { display: block;}
     #error { color: red; margin-bottom: 12px;}
+    #welcome-popup {
+      display:none; 
+      position:fixed; 
+      left:50%; top:20%; 
+      transform:translate(-50%,-50%);
+      background:#25a; 
+      color:#fff; 
+      padding:32px 50px; 
+      border-radius:20px; 
+      font-size:2rem; 
+      box-shadow:0 8px 40px #9af5;
+      z-index:2000;
+      text-align:center;
+    }
+    #all-leads-section { margin-top: 20px; }
+    #admin-section { margin-top: 20px; }
+    .tabbar { margin: 17px 0; }
+    .tabbar button.active { background: #1877cc; color: #fff; }
     @media(max-width:700px) { .row { flex-direction: column;}
       .modal, #container { min-width: unset; }
     }
   </style>
 </head>
 <body>
+<div id="welcome-popup">Welcome, Admin!</div>
+
 <div id="container">
   <div id="login-section">
     <h1>SEM Leads Login</h1>
@@ -53,22 +73,34 @@
     </p>
   </div>
 
+  <!-- Dashboard Section, plus tabbed navigation -->
   <div id="dashboard-section" style="display:none;">
     <div style="display:flex; justify-content:space-between;align-items:center;">
       <h1>SEM Leads Dashboard</h1>
       <div style="font-size:1rem; color:#349;">Welcome, <span id="currentUser"></span></div>
       <button onclick="logout()" class="secondary" style="margin-left:10px;">Logout</button>
     </div>
-    <div class="row">
+    <!-- TAB NAVIGATION -->
+    <div class="tabbar">
+      <button id="tabAdmin" onclick="showAdminSection()">Admin</button>
+      <button id="tabDashboard" onclick="showLeadsSection()">Dashboard</button>
+      <button id="tabAllLeads" onclick="showAllLeadsSection()">All Leads</button>
+    </div>
+    <!-- Dashboard content (default tab) -->
+    <div class="row" id="dashboardContentRow">
       <div class="column">
         <h2>Add New Lead</h2>
         <form id="leadForm">
-          <label>Name</label>
-          <input type="text" id="leadName" required>
+          <label>Event Name</label>
+          <input type="text" id="leadEventName" required>
           <label>Email</label>
           <input type="email" id="leadEmail" required>
           <label>Phone</label>
           <input type="text" id="leadPhone" required>
+          <label>Designation</label>
+          <input type="text" id="leadDesignation" required>
+          <label>Organising Society</label>
+          <input type="text" id="leadOrgSociety" required>
           <label>Category</label>
           <select id="leadCategory" required>
             <option value="">Select</option>
@@ -84,14 +116,31 @@
         </form>
       </div>
       <div class="column">
-        <h2>Search Leads</h2>
-        <input type="text" id="searchLead" placeholder="Search by name, email, category, remark..." style="margin-bottom:10px;">
-        <div id="leadsTableContainer"></div>
+        <h2>Today's Follow-ups</h2>
+        <div id="calendar-list"></div>
       </div>
     </div>
+    <!-- Admin Section -->
+    <div id="admin-section" style="display:none;">
+      <h2>Admin Panel</h2>
+      <div style="margin:20px 0 30px 0; padding:18px; background:#e9f3fa;">
+        <b>Hello, <span id="adminName"></span>!</b><br>
+        Welcome to the admin panel.<br>
+        <ul>
+          <li>More admin tools and analytics can go here.</li>
+          <li>Number of registered leads: <span id="adminTotalLeads"></span></li>
+          <li>Today's follow-ups: <span id="adminTodaysFollowups"></span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
-    <h2 style="margin-top:28px;">Today's Follow-ups</h2>
-    <div id="calendar-list"></div>
+  <!-- All Leads/Search Page -->
+  <div id="all-leads-section" style="display:none;">
+    <h2>All Leads</h2>
+    <input type="text" id="allSearchLead" placeholder="Search all leads by event name, email, phone, designation, society, category, remark..." style="margin-bottom:10px; width:90%; max-width:500px; font-size:17px; padding:0.7em;">
+    <div id="allLeadsTableContainer"></div>
+    <button onclick="showLeadsSection()" class="secondary" style="margin:20px 0;">Back to Dashboard</button>
   </div>
 </div>
 
@@ -128,6 +177,43 @@
   let leads = [];
   let addFollowupForIdx = null;
 
+  // ------- TAB VIEW SWITCHING -------
+  function setTabActive(tabId) {
+    const tabBtns = {
+      tabAdmin: document.getElementById("tabAdmin"),
+      tabDashboard: document.getElementById("tabDashboard"),
+      tabAllLeads: document.getElementById("tabAllLeads")
+    };
+    for (const k in tabBtns) tabBtns[k] && tabBtns[k].classList.remove("active");
+    if (tabBtns[tabId]) tabBtns[tabId].classList.add("active");
+  }
+
+  function showLeadsSection() {
+    setTabActive("tabDashboard");
+    document.getElementById('admin-section').style.display = 'none';
+    document.getElementById('dashboardContentRow').style.display = '';
+    document.getElementById('all-leads-section').style.display = 'none';
+    document.getElementById('dashboard-section').style.display = '';
+  }
+  function showAllLeadsSection() {
+    setTabActive("tabAllLeads");
+    document.getElementById('admin-section').style.display = 'none';
+    document.getElementById('dashboardContentRow').style.display = 'none';
+    document.getElementById('all-leads-section').style.display = '';
+    document.getElementById('dashboard-section').style.display = '';
+    renderAllLeadsTable();
+  }
+  function showAdminSection() {
+    setTabActive("tabAdmin");
+    document.getElementById('dashboard-section').style.display = '';
+    document.getElementById('admin-section').style.display = '';
+    document.getElementById('dashboardContentRow').style.display = 'none';
+    document.getElementById('all-leads-section').style.display = 'none';
+    document.getElementById('adminName').textContent = currentUser ?? "Admin";
+    document.getElementById('adminTotalLeads').textContent = leads.length;
+    document.getElementById('adminTodaysFollowups').textContent = countTodayFollowups();
+  }
+
   // ------ Login Logic ------
   function showError(msg) {
     document.getElementById('error').textContent = msg;
@@ -153,12 +239,21 @@
   }
 
   function showDashboard() {
-    document.getElementById('login-section').style.display = "none";
-    document.getElementById('dashboard-section').style.display = "";
-    document.getElementById('currentUser').textContent = currentUser;
-    leads = getStoredLeads();
-    renderLeads();
-    renderTodayFollowups();
+    // Welcome popup
+    document.getElementById('welcome-popup').style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('welcome-popup').style.display = 'none';
+      document.getElementById('login-section').style.display = "none";
+      document.getElementById('dashboard-section').style.display = "";
+      document.getElementById('all-leads-section').style.display = "none";
+      document.getElementById('admin-section').style.display = "none";
+      document.getElementById('dashboardContentRow').style.display = "";
+      document.getElementById('currentUser').textContent = currentUser;
+      leads = getStoredLeads();
+      renderLeads();
+      renderTodayFollowups();
+      showLeadsSection(); // default to dashboard
+    }, 1000);
   }
 
   // ------ Data Storage ------
@@ -177,9 +272,11 @@
   document.getElementById('leadForm').onsubmit = function(e) {
     e.preventDefault();
     let newLead = {
-      name: document.getElementById('leadName').value.trim(),
+      eventName: document.getElementById('leadEventName').value.trim(),
       email: document.getElementById('leadEmail').value.trim(),
       phone: document.getElementById('leadPhone').value.trim(),
+      designation: document.getElementById('leadDesignation').value.trim(),
+      organisingSociety: document.getElementById('leadOrgSociety').value.trim(),
       category: document.getElementById('leadCategory').value,
       remarks: document.getElementById('leadRemarks').value.trim(),
       followups: []
@@ -188,23 +285,77 @@
     saveLeads();
     renderLeads();
     renderTodayFollowups();
+    renderAllLeadsTable();
     this.reset();
     alert('Lead added!');
   };
 
   // ------ Render Leads Table ------
   function renderLeads() {
-    let q = document.getElementById('searchLead').value.trim().toLowerCase();
     let html = `<table id="leadsTable">
-      <tr><th>Name</th><th>Email</th><th>Phone</th><th>Category</th>
-      <th>Remarks</th><th>Follow-ups</th></tr>`;
-    leads.filter(lead =>
-      [lead.name, lead.email, lead.phone, lead.category, lead.remarks].join("|").toLowerCase().includes(q)
-    ).forEach((lead, i) => {
+      <tr>
+        <th>Event Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Designation</th>
+        <th>Organising Society</th>
+        <th>Category</th>
+        <th>Remarks</th>
+        <th>Follow-ups</th>
+      </tr>`;
+    leads.forEach((lead, i) => {
       html += `<tr>
-        <td>${lead.name}</td>
+        <td>${lead.eventName}</td>
         <td>${lead.email}</td>
         <td>${lead.phone}</td>
+        <td>${lead.designation}</td>
+        <td>${lead.organisingSociety}</td>
+        <td><span class='tag ${lead.category.split(' ')[0]}'>${lead.category}</span></td>
+        <td>${lead.remarks || ''}</td>
+        <td>
+          ${lead.followups.length}
+          <button type="button" onclick="openFollowupModal(${i})">Add</button>
+          <br>
+          ${lead.followups.map((f,idx) =>
+            `<div style="font-size:13px;padding:2px;">
+              📆 ${new Date(f.datetime).toLocaleString()}<br>
+              <span style="color:#444;">${f.remark}</span>
+              <span style="color:${f.done?'#317d3c':'#b53124'};font-weight:bold;">
+                [${f.done?'Done':'Pending'}]
+              </span>
+              <button type="button" onclick="markFollowupDone(${i},${idx})" style="font-size:11px; margin-left:2px;">Mark Done</button>
+            </div>`
+          ).join('')}
+        </td>
+      </tr>`;
+    });
+    // Not displaying leads table on dashboard by default (to keep dashboard clean per your last direction)
+    // If you want to show it, set: document.getElementById('leadsTableContainer').innerHTML = html;
+  }
+
+  // ------ All Leads Table ------
+  function renderAllLeadsTable() {
+    let q = document.getElementById('allSearchLead').value.trim().toLowerCase();
+    let html = `<table id="allLeadsTable">
+      <tr>
+        <th>Event Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Designation</th>
+        <th>Organising Society</th>
+        <th>Category</th>
+        <th>Remarks</th>
+        <th>Follow-ups</th>
+      </tr>`;
+    leads.filter(lead =>
+      [lead.eventName, lead.email, lead.phone, lead.designation, lead.organisingSociety, lead.category, lead.remarks].join("|").toLowerCase().includes(q)
+    ).forEach((lead, i) => {
+      html += `<tr>
+        <td>${lead.eventName}</td>
+        <td>${lead.email}</td>
+        <td>${lead.phone}</td>
+        <td>${lead.designation}</td>
+        <td>${lead.organisingSociety}</td>
         <td><span class='tag ${lead.category.split(' ')[0]}'>${lead.category}</span></td>
         <td>${lead.remarks || ''}</td>
         <td>
@@ -225,16 +376,14 @@
       </tr>`;
     });
     html += "</table>";
-    document.getElementById('leadsTableContainer').innerHTML = html;
+    document.getElementById('allLeadsTableContainer').innerHTML = html;
   }
-
-  // ------ Search Functionality ------
-  document.getElementById('searchLead').oninput = renderLeads;
+  document.getElementById('allSearchLead').oninput = renderAllLeadsTable;
 
   // ------ Follow-up Modal ------
   window.openFollowupModal = function(idx) {
     addFollowupForIdx = idx;
-    document.getElementById('fLeadName').textContent = leads[idx].name;
+    document.getElementById('fLeadName').textContent = leads[idx].eventName;
     document.getElementById('followupDate').value = '';
     document.getElementById('followupRemark').value = '';
     document.getElementById('modalBg').classList.add('open');
@@ -259,6 +408,7 @@
     closeFollowupModal();
     renderLeads();
     renderTodayFollowups();
+    renderAllLeadsTable();
   };
 
   // Mark follow-up as done
@@ -267,6 +417,7 @@
     saveLeads();
     renderLeads();
     renderTodayFollowups();
+    renderAllLeadsTable();
   };
 
   // ------ Calendar: Today's Follow-ups ------
@@ -276,24 +427,37 @@
     let todayStart = new Date(yyyy,mm,dd,0,0,0).getTime();
     let todayEnd   = new Date(yyyy,mm,dd,23,59,59).getTime();
     let html = '';
-    let foundAny = false;
     leads.forEach((lead, i) => {
       lead.followups.forEach((f, idx) => {
         let ts = new Date(f.datetime).getTime();
         if(ts>=todayStart && ts<=todayEnd) {
           html += `<div class="flex" style="align-items:center; margin-bottom:7px;">
             <span class="tag ${lead.category.split(' ')[0]}" style="min-width:40px;">${lead.category}</span>
-            <b style="color:#25a">${lead.name}</b>
+            <b style="color:#25a">${lead.eventName}</b>
             <span>${new Date(f.datetime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
             <span>${f.remark}</span>
             <span style="color:${f.done?'#337d34':'#b53124'};font-size:.94em;">[${f.done?'Done':'Pending'}]</span>
             <button type="button" onclick="markFollowupDone(${i},${idx});" style="font-size:13px;">Mark Done</button>
           </div>`;
-          foundAny = true;
         }
       });
     });
     document.getElementById('calendar-list').innerHTML = html || "<em>No follow-ups scheduled for today.</em>";
+  }
+
+  function countTodayFollowups() {
+    let now = new Date();
+    let yyyy = now.getFullYear(), mm = now.getMonth(), dd = now.getDate();
+    let todayStart = new Date(yyyy,mm,dd,0,0,0).getTime();
+    let todayEnd   = new Date(yyyy,mm,dd,23,59,59).getTime();
+    let count = 0;
+    leads.forEach((lead) =>
+      lead.followups.forEach((f) => {
+        let ts = new Date(f.datetime).getTime();
+        if (ts >= todayStart && ts <= todayEnd) count++;
+      })
+    );
+    return count;
   }
 
   // ------ Autofill Session ------
