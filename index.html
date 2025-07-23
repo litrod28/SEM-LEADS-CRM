@@ -50,7 +50,7 @@
       sushant / sush@123<br>
       yash / yash@123<br>
       gaurav / gaurav@123<br>
-          </p>
+    </p>
   </div>
 
   <div id="dashboard-section" style="display:none;">
@@ -100,7 +100,7 @@
 <div id="followupModal" class="modal">
   <div style="display:flex; justify-content:space-between; align-items:center;">
     <h3>Add Follow-up</h3>
-    <button onclick="closeFollowupModal()">✖</button>
+    <button type="button" onclick="closeFollowupModal()">✖</button>
   </div>
   <form id="followupForm">
     <div>For: <span id="fLeadName"></span></div>
@@ -113,22 +113,19 @@
 </div>
 
 <script>
-  // User Demo Profiles
+  // ----- User Demo Profiles -----
   const users = [
-    { username: "aman.verma", password: "Aman@123" },
-    { username: "sunita.g", password: "Sunita#456" },
-    { username: "rahul.m", password: "Rahul$789" },
-    { username: "priya.d", password: "Priya@321" },
-    { username: "karan.s", password: "Karan@567" }
+    { username: "sushant", password: "sush@123" },
+    { username: "yash", password: "yash@123" },
+    { username: "gaurav", password: "gaurav@123" }
   ];
 
-  // LocalStorage key for leads and session
+  // LocalStorage keys
   const LEADS_KEY = "semleads_leads";
   const SESSION_KEY = "semleads_user";
 
   let currentUser = null;
   let leads = [];
-  let editingLeadIndex = null;
   let addFollowupForIdx = null;
 
   // ------ Login Logic ------
@@ -141,11 +138,10 @@
 
   document.getElementById('loginForm').onsubmit = function(e) {
     e.preventDefault();
-    let user = document.getElementById('loginUser').value;
+    let user = document.getElementById('loginUser').value.trim();
     let pass = document.getElementById('loginPass').value;
     let res = loginCheck(user, pass);
     if (!res) return showError('Invalid username or password.');
-    // Save session and go to dashboard
     window.localStorage.setItem(SESSION_KEY, user);
     currentUser = user;
     showDashboard();
@@ -168,7 +164,6 @@
   // ------ Data Storage ------
   function getStoredLeads() {
     let arr = JSON.parse(window.localStorage.getItem(LEADS_KEY) || "[]");
-    // migrate "followups" if needed
     arr.forEach(lead => {
       if (!lead.followups) lead.followups = [];
     });
@@ -214,7 +209,7 @@
         <td>${lead.remarks || ''}</td>
         <td>
           ${lead.followups.length}
-          <button onclick="openFollowupModal(${i})">Add</button>
+          <button type="button" onclick="openFollowupModal(${i})">Add</button>
           <br>
           ${lead.followups.map((f,idx) =>
             `<div style="font-size:13px;padding:2px;">
@@ -223,7 +218,7 @@
               <span style="color:${f.done?'#317d3c':'#b53124'};font-weight:bold;">
                 [${f.done?'Done':'Pending'}]
               </span>
-              <button onclick="markFollowupDone(${i},${idx})" style="font-size:11px; margin-left:2px;">Mark Done</button>
+              <button type="button" onclick="markFollowupDone(${i},${idx})" style="font-size:11px; margin-left:2px;">Mark Done</button>
             </div>`
           ).join('')}
         </td>
@@ -237,18 +232,18 @@
   document.getElementById('searchLead').oninput = renderLeads;
 
   // ------ Follow-up Modal ------
-  function openFollowupModal(idx) {
+  window.openFollowupModal = function(idx) {
     addFollowupForIdx = idx;
     document.getElementById('fLeadName').textContent = leads[idx].name;
     document.getElementById('followupDate').value = '';
     document.getElementById('followupRemark').value = '';
     document.getElementById('modalBg').classList.add('open');
     document.getElementById('followupModal').classList.add('open');
-  }
-  function closeFollowupModal() {
+  };
+  window.closeFollowupModal = function() {
     document.getElementById('modalBg').classList.remove('open');
     document.getElementById('followupModal').classList.remove('open');
-  }
+  };
 
   document.getElementById('followupForm').onsubmit = function(e) {
     e.preventDefault();
@@ -274,12 +269,12 @@
     renderTodayFollowups();
   };
 
-  // ------ Calendar: Today’s Follow-ups ------
+  // ------ Calendar: Today's Follow-ups ------
   function renderTodayFollowups() {
     let now = new Date();
     let yyyy = now.getFullYear(), mm = now.getMonth(), dd = now.getDate();
     let todayStart = new Date(yyyy,mm,dd,0,0,0).getTime();
-    let todayEnd = new Date(yyyy,mm,dd,23,59,59).getTime();
+    let todayEnd   = new Date(yyyy,mm,dd,23,59,59).getTime();
     let html = '';
     let foundAny = false;
     leads.forEach((lead, i) => {
@@ -292,7 +287,7 @@
             <span>${new Date(f.datetime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
             <span>${f.remark}</span>
             <span style="color:${f.done?'#337d34':'#b53124'};font-size:.94em;">[${f.done?'Done':'Pending'}]</span>
-            <button onclick="markFollowupDone(${i},${idx});" style="font-size:13px;">Mark Done</button>
+            <button type="button" onclick="markFollowupDone(${i},${idx});" style="font-size:13px;">Mark Done</button>
           </div>`;
           foundAny = true;
         }
@@ -307,7 +302,7 @@
     if(currentUser) showDashboard();
   };
 
-  // Clicking background also closes modal
+  // Clicking background closes modal
   document.getElementById('modalBg').onclick = closeFollowupModal;
 </script>
 </body>
