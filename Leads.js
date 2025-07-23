@@ -1,10 +1,8 @@
 // ----- User Demo Profiles -----
 const users = [
-  { username: "aman.verma", password: "Aman@123" },
-  { username: "sunita.g", password: "Sunita#456" },
-  { username: "rahul.m", password: "Rahul$789" },
-  { username: "priya.d", password: "Priya@321" },
-  { username: "karan.s", password: "Karan@567" }
+  { username: "sushant", password: "sush@123" },
+  { username: "yash", password: "yash@123" },
+  { username: "gaurav", password: "gaurav@123" }
 ];
 
 // LocalStorage keys
