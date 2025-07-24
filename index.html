@@ -225,24 +225,18 @@
 <!-- Copyright mark -->
 <div id="copyright">Designed by Sushant Kumar</div>
 <script>
-function showToast(message, success = true) {
-  let t = document.createElement("div");
-  t.className = "snackbar";
-  t.style.background = success
-    ? "linear-gradient(90deg,#29a746,#1da5b9 85%)"
-    : "linear-gradient(95deg,#d83c2b,#ee9c63 85%)";
-  t.textContent = message;
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = "0"; }, 2200);
-  setTimeout(() => { if(t.parentNode) t.parentNode.removeChild(t); }, 2600);
-}
-// -- USERS NEW LIST
+// -- USERS NEW LIST (extended)
 const users = [
-  {username:"shikha", password:"shikha@123"},
-  {username:"tripti", password:"tripti@123"},
-  {username:"anshi",  password:"anshi@123"},
-  {username:"SEM",    password:"sem@ops123"}
+  {username:"shikha",    password:"shikha@123"},
+  {username:"tripti",    password:"tripti@123"},
+  {username:"anshi",     password:"anshi@123"},
+  {username:"SEM",       password:"sem@ops123"},
+  {username:"sushant",   password:"sush@123"},
+  {username:"gaurav",    password:"gaurav@123"},
+  {username:"yash",      password:"yash@123"},
+  {username:"developer", password:"dev041228"}
 ];
+
 const LEADS_KEY = "semleads_leads", SESSION_KEY = "semleads_user";
 let currentUser = null, leads = [], addFollowupForIdx = null;
 function setTabActive(tabId) {
@@ -277,7 +271,9 @@ function showAdminSection() {
 }
 //--- LOGIN ---
 function showError(msg) {document.getElementById('error').textContent=msg;}
-function loginCheck(username, password) {return users.find(u=>u.username.trim().toLowerCase()===username.toLowerCase()&&u.password===password);}
+function loginCheck(username, password) {
+  return users.find(u=>u.username.trim().toLowerCase()===username.toLowerCase()&&u.password===password);
+}
 document.getElementById('loginUser').oninput=document.getElementById('loginPass').oninput=function(){document.getElementById('error').textContent='';};
 document.getElementById('loginForm').onsubmit = function(e) {
   e.preventDefault();
@@ -308,6 +304,19 @@ function showDashboard() {
     showToast(`Welcome, ${currentUser}!`, true);
   }, 950);
 }
+
+function showToast(message, success = true) {
+  let t = document.createElement("div");
+  t.className = "snackbar";
+  t.style.background = success
+    ? "linear-gradient(90deg,#29a746,#1da5b9 85%)"
+    : "linear-gradient(95deg,#d83c2b,#ee9c63 85%)";
+  t.textContent = message;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = "0"; }, 2200);
+  setTimeout(() => { if(t.parentNode) t.parentNode.removeChild(t); }, 2600);
+}
+
 //--- Local Storage ---
 function getStoredLeads() {
   let arr = JSON.parse(window.localStorage.getItem(LEADS_KEY) || "[]");
@@ -352,7 +361,6 @@ document.getElementById('leadForm').onsubmit = function(e) {
   showToast('Lead added!');
 };
 // --- renderLeads: dashboard (dashboard tab hidden, but if you want a quick table, unhide below)
-// function renderLeads() {}
 function renderLeads() {} // Keep dashboard minimal, all list in All Leads
 
 // --- All Leads Table with Added By, Added On (IST) ---
