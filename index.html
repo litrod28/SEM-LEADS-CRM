@@ -118,6 +118,18 @@
       opacity: 0.93;
       user-select: none;
     }
+    /* Super Admin Panel */
+    .superpanel { background: #f3f7fd; padding: 19px 24px 20px 19px; border-radius: 15px; box-shadow:0 2px 10px #89ddee10; margin-bottom:22px;}
+    .super-tabs { display: flex; gap: 11px; margin: 20px 0 17px 0;}
+    .super-tabs button { border-radius: 11px 11px 0 0; border: none; background: #e9eef7; color: #1877cc; font-weight:600; font-size:1em; padding: 8px 18px 7px 18px; transition: background .17s, color .19s;}
+    .super-tabs button.active, .super-tabs button:focus { background: #1477c9; color: #fff;}
+    .super-tabs button:not(.active):hover {background: #bae8fe;}
+    .msg-input { width:70%; margin-right:5px; border-radius:6px; border:1px solid #c3e7fa; padding:6px;}
+    .userbox {margin-bottom:20px; padding:14px 10px; border-bottom:1px solid #eee6; }
+    .leadsbox {margin-bottom:20px; padding:12px 4px;}
+    .user-list-table, .user-list-table th, .user-list-table td { border: 1px solid #cbebfc; border-collapse: collapse;}
+    .user-list-table th, .user-list-table td { padding:5px 9px; }
+    .user-list-table th { background: #e3f1fc; color:#1876cc;}
   </style>
 </head>
 <body>
@@ -143,6 +155,20 @@
       <button type="submit">Login</button>
     </form>
   </div>
+
+  <!-- --- Super Admin Panel (only visible for developer) --- -->
+  <div id="superAdminPanel" style="display:none;">
+    <div class="superpanel">
+      <b style="font-size:1.20em;color:#157e86;">Super Admin Panel (<span id="devUsername"></span>)</b><br>
+      <div class="super-tabs" id="superTabs"></div>
+      <div style="margin-bottom:17px;"><button onclick="app.showUserAddBox()">+ Add New User</button></div>
+      <div id="superPanelBody"></div>
+      <div><b>All Users &mdash; edit / delete below:</b></div>
+      <div id="userManageTable"></div>
+    </div>
+  </div>
+
+  <!-- --- Regular dashboard for non-developer users --- -->
   <div id="dashboard-section" style="display:none;">
     <div style="display:flex; justify-content:space-between;align-items:center;">
       <h1>SEM Leads Dashboard</h1>
@@ -225,20 +251,342 @@
 <!-- Copyright mark -->
 <div id="copyright">Designed by Sushant Kumar</div>
 <script>
-// -- USERS NEW LIST (extended)
-const users = [
-  {username:"shikha",    password:"shikha@123"},
-  {username:"tripti",    password:"tripti@123"},
-  {username:"anshi",     password:"anshi@123"},
-  {username:"SEM",       password:"sem@ops123"},
-  {username:"sushant",   password:"sush@123"},
-  {username:"gaurav",    password:"gaurav@123"},
-  {username:"yash",      password:"yash@123"},
-  {username:"developer", password:"dev041228"}
-];
+// --- Toast ---
+function showToast(message, success = true) {
+  let t = document.createElement("div");
+  t.className = "snackbar";
+  t.style.background = success
+    ? "linear-gradient(90deg,#29a746,#1da5b9 85%)"
+    : "linear-gradient(95deg,#d83c2b,#ee9c63 85%)";
+  t.textContent = message;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = "0"; }, 2200);
+  setTimeout(() => { if(t.parentNode) t.parentNode.removeChild(t); }, 2600);
+}
+// --- Utility
+function isDeveloper() { return currentUser==="developer"; }
 
+//--- User/Lead Mgmt in Storage (not just array) ---
+const USERS_KEY = "semleads_users";
+function getUserList() {
+  let u = JSON.parse(localStorage.getItem(USERS_KEY)||"null");
+  if (!u) {
+    u = [
+      {username:"shikha",    password:"shikha@123"},
+      {username:"tripti",    password:"tripti@123"},
+      {username:"anshi",     password:"anshi@123"},
+      {username:"SEM",       password:"sem@ops123"},
+      {username:"sushant",   password:"sush@123"},
+      {username:"gaurav",    password:"gaurav@123"},
+      {username:"yash",      password:"yash@123"},
+      {username:"developer", password:"dev041228"}
+    ];
+    localStorage.setItem(USERS_KEY, JSON.stringify(u));
+  }
+  return u;
+}
+function setUserList(arr) { localStorage.setItem(USERS_KEY, JSON.stringify(arr)); }
+
+// --------- DEVELOPER SUPER ADMIN PANEL Logic ---------
+class SuperAdmin {
+  constructor() {
+    this.userTabsElem = document.getElementById('superTabs');
+    this.superBody = document.getElementById('superPanelBody');
+    this.data = {
+      users: getUserList(),
+      target: 'developer', // Which user is currently managed?
+    };
+    this.renderTabs();
+  }
+  renderTabs() {
+    this.data.users = getUserList();
+    this.userTabsElem.innerHTML = '';
+    this.data.users.forEach(u => {
+      let btn = document.createElement('button');
+      btn.textContent = u.username;
+      btn.className = (u.username===this.data.target ? 'active' : '');
+      btn.onclick = () => { this.data.target = u.username; this.renderTabs(); this.renderPanel(); }
+      this.userTabsElem.appendChild(btn);
+    });
+    this.renderPanel();
+  }
+  renderPanel() {
+    let ulist = getUserList(), targetUser = ulist.find(u=>u.username===this.data.target);
+    // Profile/credentials
+    let readonly = (targetUser.username==="developer")?"readonly":"";
+    let msgBox = `<input id="msgToUser" class="msg-input" placeholder="Send message to this user..."><button onclick="superadmin.sendMessage('${targetUser.username}')">Send</button>`;
+    this.superBody.innerHTML = `
+    <div class="userbox">
+      <b>User Profile: <span style="color:#04b">${targetUser.username}</span></b>
+      <form onsubmit="superadmin.editUser(event)">
+        Username: <input name="username" value="${targetUser.username}" ${readonly} required>
+        Password: <input name="password" value="${targetUser.password}" required>
+        <button type="submit">Save</button>
+        ${targetUser.username!=='developer'?`<button type="button" onclick="superadmin.deleteUser('${targetUser.username}')">Delete User</button>`:""}
+      </form>
+      <br>
+      <div>
+        <button onclick="superadmin.renderMessages('${targetUser.username}')">Show Messages</button> 
+        ${msgBox}
+      </div>
+      <div id="superMsgInbox"></div>
+    </div>
+    <div class="leadsbox">
+      <b>Leads owned by this user:</b>
+      <button onclick="superadmin.addLead('${targetUser.username}')">+ Add Lead</button>
+      <div id="superLeadsList"></div>
+    </div>
+    `;
+    this.renderLeads(targetUser.username);
+    this.renderMessages(targetUser.username);
+    superadmin.buildUserTable();
+  }
+  buildUserTable() {
+    let ulist = getUserList();
+    let html = `<table class="user-list-table"><tr><th>User</th><th>Password</th><th>&nbsp;</th></tr>`;
+    ulist.forEach(u=>{
+      html+=`<tr>
+        <td>${u.username}</td>
+        <td>${u.password}</td>
+        <td>${u.username!=='developer'?`<button onclick="superadmin.deleteUser('${u.username}')">Delete</button>`:''}</td>
+      </tr>`;
+    });
+    html+="</table>";
+    document.getElementById("userManageTable").innerHTML = html;
+  }
+  editUser(e) {
+    e.preventDefault();
+    let uname = this.data.target, users = getUserList();
+    let idx = users.findIndex(u=>u.username===uname);
+    if(idx<0) return showToast('User not found!',false);
+    let newName = e.target.username.value.trim();
+    let newPass = e.target.password.value.trim();
+    if(!newName || !newPass) return showToast('Fields required',false);
+    if(newName!==uname && users.some(u=>u.username===newName)) return showToast('Username taken',false);
+    users[idx].username = newName;
+    users[idx].password = newPass;
+    // Move any leads/followups to new name if changed
+    let leads = getStoredLeads();
+    leads.forEach(l=>{if(l.addedBy===uname)l.addedBy=newName;});
+    saveLeads();
+    setUserList(users);
+    showToast('Saved!',true);
+    if(currentUser===uname) {
+      currentUser=newName; localStorage.setItem(SESSION_KEY,newName);
+      document.getElementById('currentUser').textContent = newName;
+    }
+    this.data.target = newName;
+    this.renderTabs();
+  }
+  deleteUser(uname) {
+    if(!confirm(`Delete user ${uname} and their leads?`)) return;
+    let users = getUserList().filter(u=>u.username!==uname),
+      leads = getStoredLeads().filter(l=>l.addedBy!==uname);
+    setUserList(users); window.leads = leads; saveLeads();
+    if(currentUser===uname) { logout(); return; }
+    if(this.data.target===uname) this.data.target='developer';
+    this.renderTabs();
+  }
+  showUserAddBox() {
+    this.superBody.innerHTML = `
+      <form onsubmit="superadmin.addUser(event)"><b>Add new user:</b> 
+        Username:<input name="username" required> Password:<input name="password" required>
+        <button>Add User</button>
+      </form>
+    `;
+  }
+  addUser(e) {
+    e.preventDefault();
+    let users = getUserList();
+    let uname = e.target.username.value.trim(), pass = e.target.password.value.trim();
+    if(!uname||!pass) return showToast('Fields...',0);
+    if(users.some(u=>u.username===uname)) return showToast('Username exists',0);
+    users.push({username: uname, password: pass});
+    setUserList(users); showToast("User added!",1); this.data.target=uname; this.renderTabs();
+  }
+  // Message System
+  sendMessage(uname) {
+    let val = document.getElementById('msgToUser').value.trim();
+    if(!val) return showToast('Empty msg',0);
+    let k="semleads_inbox_"+uname, inbox=JSON.parse(localStorage.getItem(k)||"[]");
+    inbox.push({from:"developer",text:val,dt:(new Date()).toLocaleString()});
+    localStorage.setItem(k,JSON.stringify(inbox));
+    showToast("Sent",1);
+    this.renderMessages(uname);
+    document.getElementById('msgToUser').value='';
+  }
+  renderMessages(uname) {
+    let k = "semleads_inbox_"+uname, inbox=JSON.parse(localStorage.getItem(k)||"[]");
+    document.getElementById('superMsgInbox').innerHTML = "<b>Inbox for "+uname+":</b><br>"+
+      (inbox.length==0?`<em>No messages</em>`: inbox.slice().reverse().map(m=>`<div style="background:#f7ffff;margin:5px 0 3px 0;padding:5px 8px 3px 7px;border-radius:5px;"><b>${m.from}:</b> ${m.text}<br><small>${m.dt}</small></div>`).join(""));
+  }
+  // ----------- Leads and FUps -----------
+  renderLeads(user) {
+    let leads = getStoredLeads().filter(l=>l.addedBy===user);
+    let html = '';
+    leads.forEach(l => {
+      let id = "superLeadsFup_"+l.email.replace(/[^a-z0-9]/gi, '');
+      html += `
+      <div style="background:#fff;padding:10px 7px 7px 8px;margin-bottom:9px;border-radius:7px;box-shadow:0 1px 6px #d6ebef11;">
+        <b>${l.eventName||"[No Event]"}</b>
+        <button style="margin-left:5px;" onclick="superadmin.deleteLead('${l.email}')">Delete</button>
+        <button style="margin-left:3px;" onclick="superadmin.editLead('${l.email}')">Edit</button><br>
+        Email: ${l.email} <br>
+        Phone: ${l.phone} <br>
+        Designation: ${l.designation}<br>
+        Society: ${l.organisingSociety}<br>
+        Category: ${l.category}<br>
+        Remarks: ${l.remarks||'-'}<br>
+        <form onsubmit="return superadmin.setLeadDate('${l.email}',this)">
+          Date Added: <input type="datetime-local" name="dt" value="${l.addedOn?l.addedOn.substring(0,16):''}"><button>Set</button>
+        </form>
+        <div>Follow-ups: <button onclick="superadmin.showFupAddBox('${l.email}')">Add Follow-up</button></div>
+        <div id="${id}"></div>
+      </div>
+      `;
+      setTimeout(()=>superadmin.renderFollowups(l.email),1);
+    });
+    document.getElementById('superLeadsList').innerHTML = html;
+  }
+  addLead(addedBy) {
+    this.superBody.querySelector('#superLeadsList').innerHTML =
+    `<form onsubmit="return superadmin.saveNewLead(event,'${addedBy}')">
+      <b>Add lead for ${addedBy}:</b> <br>
+      Event Name:<input name="eventName"> Email:<input name="email"> Phone:<input name="phone"><br>
+      Designation:<input name="designation"> Society:<input name="organisingSociety">
+      <br>Category:<select name="category"><option>Hot</option><option>Warm</option><option>Cold</option><option>NI</option><option>NRE</option></select>
+      <br>Remarks:<input name="remarks"> <button>Add</button></form>` + this.superBody.querySelector("#superLeadsList").innerHTML;
+  }
+  saveNewLead(e, user) {
+    e.preventDefault();
+    let f = e.target;
+    let l={eventName:f.eventName.value,email:f.email.value,phone:f.phone.value,designation:f.designation.value,organisingSociety:f.organisingSociety.value,category:f.category.value,remarks:f.remarks.value,followups:[],addedBy:user,addedOn:(new Date()).toISOString()};
+    let leads = getStoredLeads();
+    if(leads.some(a=>a.email===l.email)) return showToast("Email already exists!",0);
+    leads.push(l); window.leads=leads; saveLeads();
+    showToast("Added!",1); this.renderLeads(user); return false;
+  }
+  deleteLead(email) {
+    if(!confirm("Delete?")) return;
+    let leads = getStoredLeads().filter(l=>l.email!==email);
+    window.leads = leads; saveLeads(); this.renderLeads(this.data.target);
+  }
+  editLead(email) {
+    let leads = getStoredLeads(); let idx = leads.findIndex(l=>l.email===email); if(idx<0)return;
+    let l = leads[idx];
+    let f = `<form onsubmit="return superadmin.saveEditLead(event, '${email}')">
+    Edit Lead-- Event: <input name="eventName" value="${l.eventName}"> Email:<input name="email" value="${l.email}"> Phone:<input name="phone" value="${l.phone}">
+    <br>Designation:<input name="designation" value="${l.designation}"> Society:<input name="organisingSociety" value="${l.organisingSociety}">
+    <br>Category:<select name="category">
+      <option${l.category==='Hot'?' selected':''}>Hot</option>
+      <option${l.category==='Warm'?' selected':''}>Warm</option>
+      <option${l.category==='Cold'?' selected':''}>Cold</option>
+      <option${l.category==='NI'?' selected':''}>NI</option>
+      <option${l.category==='NRE'?' selected':''}>NRE</option>
+    </select>
+    <br>Remarks:<input name="remarks" value="${(l.remarks||'')}">
+    <button>Save</button>
+    </form>`;
+    this.superBody.querySelector("#superLeadsList").innerHTML = f+this.superBody.querySelector("#superLeadsList").innerHTML;
+  }
+  saveEditLead(e, email) {
+    e.preventDefault();
+    let leads = getStoredLeads();
+    let idx = leads.findIndex(l=>l.email===email);
+    let f = e.target;
+    leads[idx].eventName = f.eventName.value; leads[idx].email=f.email.value; leads[idx].phone=f.phone.value;
+    leads[idx].designation=f.designation.value; leads[idx].organisingSociety=f.organisingSociety.value;
+    leads[idx].category=f.category.value; leads[idx].remarks=f.remarks.value; 
+    window.leads=leads; saveLeads();
+    showToast("Saved"); setTimeout(()=>this.renderLeads(this.data.target),320); return false;
+  }
+  setLeadDate(email, form) {
+    let leads = getStoredLeads(), idx = leads.findIndex(l=>l.email===email); if(idx<0)return false;
+    leads[idx].addedOn = form.dt.value; window.leads=leads; saveLeads(); showToast("Date Updated!"); setTimeout(()=>this.renderLeads(this.data.target),120); return false;
+  }
+  // --------- Followups -------------
+  renderFollowups(email) {
+    let leads = getStoredLeads(),lead=leads.find(l=>l.email===email); if(!lead) return;
+    let id = "superLeadsFup_"+email.replace(/[^a-z0-9]/gi, '');
+    let html = '';
+    lead.followups.forEach((f,i)=>{
+      html+=`<div style="margin:3px 0;">[${f.done?'Done':'Pending'}]
+      ${new Date(f.datetime).toLocaleString("en-IN",{timeZone:"Asia/Kolkata"})}
+      <b>:</b> ${f.remark}
+      <button onclick="superadmin.toggleFup('${email}',${i})">Toggle Done</button>
+      <button onclick="superadmin.deleteFup('${email}',${i})">Delete</button>
+      </div>`;
+    });
+    html += `<form onsubmit="return superadmin.addFupQuick(event,'${email}')">
+      Add Followup: <input name="date" type="datetime-local"> <input name="remark" placeholder="remark">
+      <button>Add</button></form>`;
+    document.getElementById(id).innerHTML = html;
+  }
+  showFupAddBox(email) {
+    let id = "superLeadsFup_"+email.replace(/[^a-z0-9]/gi, '');
+    document.getElementById(id).querySelector('input[name="date"]').focus();
+  }
+  addFupQuick(e, email) {
+    e.preventDefault();
+    let dt=e.target.date.value, r=e.target.remark.value.trim();
+    if(!dt||!r)return showToast("Enter both",0);
+    let leads=getStoredLeads(), idx=leads.findIndex(l=>l.email===email);
+    leads[idx].followups.push({datetime:dt,remark:r,done:false}); window.leads=leads; saveLeads();
+    showToast("Added!"); this.renderFollowups(email); return false;
+  }
+  toggleFup(email,i) {
+    let leads=getStoredLeads(),idx=leads.findIndex(l=>l.email===email); if(idx<0)return;
+    leads[idx].followups[i].done=!leads[idx].followups[i].done; window.leads=leads; saveLeads(); this.renderFollowups(email);
+  }
+  deleteFup(email,i) {
+    let leads=getStoredLeads(),idx=leads.findIndex(l=>l.email===email); if(idx<0)return;
+    leads[idx].followups.splice(i,1); window.leads=leads; saveLeads(); this.renderFollowups(email);
+  }
+}
+window.superadmin = null;
+
+// -------- End Superadmin ---------
+
+// -- USERS AND LEAD DATA/LOGIC FOR NORMAL USERS --
 const LEADS_KEY = "semleads_leads", SESSION_KEY = "semleads_user";
 let currentUser = null, leads = [], addFollowupForIdx = null;
+
+// For all legacy code using "users" array, now wire to storage:
+function loginCheck(username, password) {
+  let list = getUserList();
+  return list.find(u=>u.username.trim().toLowerCase()===username.toLowerCase()&&u.password===password);
+}
+function showError(msg) {document.getElementById('error').textContent=msg;}
+document.getElementById('loginUser').oninput=document.getElementById('loginPass').oninput=function(){document.getElementById('error').textContent='';};
+document.getElementById('loginForm').onsubmit = function(e) {
+  e.preventDefault();
+  let user = document.getElementById('loginUser').value.trim(), pass = document.getElementById('loginPass').value;
+  let res = loginCheck(user, pass);
+  if (!res) return showError('Invalid username or password.');
+  window.localStorage.setItem(SESSION_KEY, user);
+  currentUser = user;
+  if (isDeveloper()) {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('superAdminPanel').style.display = '';
+    document.getElementById('devUsername').textContent = currentUser;
+    window.superadmin = new SuperAdmin();
+    return;
+  }
+  showDashboard();
+};
+function logout() {
+  window.localStorage.removeItem(SESSION_KEY); location.reload();
+}
+function getStoredLeads() {
+  let arr = JSON.parse(window.localStorage.getItem(LEADS_KEY) || "[]");
+  arr.forEach(lead => { if (!lead.followups) lead.followups = []; });
+  window.leads = arr;
+  return arr;
+}
+function saveLeads() {
+  window.localStorage.setItem(LEADS_KEY, JSON.stringify(window.leads||[]));
+}
+
 function setTabActive(tabId) {
   const tabBtns = {tabAdmin:document.getElementById("tabAdmin"),tabDashboard:document.getElementById("tabDashboard"),tabAllLeads:document.getElementById("tabAllLeads")};
   for(const k in tabBtns) tabBtns[k]&&tabBtns[k].classList.remove("active");
@@ -269,24 +617,6 @@ function showAdminSection() {
   document.getElementById('adminTotalLeads').textContent=leads.length;
   document.getElementById('adminTodaysFollowups').textContent=countTodayFollowups();
 }
-//--- LOGIN ---
-function showError(msg) {document.getElementById('error').textContent=msg;}
-function loginCheck(username, password) {
-  return users.find(u=>u.username.trim().toLowerCase()===username.toLowerCase()&&u.password===password);
-}
-document.getElementById('loginUser').oninput=document.getElementById('loginPass').oninput=function(){document.getElementById('error').textContent='';};
-document.getElementById('loginForm').onsubmit = function(e) {
-  e.preventDefault();
-  let user = document.getElementById('loginUser').value.trim(), pass = document.getElementById('loginPass').value;
-  let res = loginCheck(user, pass);
-  if (!res) return showError('Invalid username or password.');
-  window.localStorage.setItem(SESSION_KEY, user);
-  currentUser = user;
-  showDashboard();
-};
-function logout() {
-  window.localStorage.removeItem(SESSION_KEY); location.reload();
-}
 function showDashboard() {
   document.getElementById('welcome-popup').style.display = 'block';
   setTimeout(() => {
@@ -302,31 +632,18 @@ function showDashboard() {
     renderTodayFollowups();
     showLeadsSection();
     showToast(`Welcome, ${currentUser}!`, true);
+    // Show inbox if any
+    let k="semleads_inbox_"+currentUser, inbox=JSON.parse(localStorage.getItem(k)||"[]");
+    if(inbox && inbox.length) {
+      setTimeout(()=>{
+        showToast("You have "+inbox.length+" message"+(inbox.length>1?"s":""),1);
+        alert("Messages from developer:\n\n"+inbox.map(m=>m.from+": "+m.text).join("\n\n"));
+        localStorage.setItem(k,"[]");
+      },1200);
+    }
   }, 950);
 }
 
-function showToast(message, success = true) {
-  let t = document.createElement("div");
-  t.className = "snackbar";
-  t.style.background = success
-    ? "linear-gradient(90deg,#29a746,#1da5b9 85%)"
-    : "linear-gradient(95deg,#d83c2b,#ee9c63 85%)";
-  t.textContent = message;
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = "0"; }, 2200);
-  setTimeout(() => { if(t.parentNode) t.parentNode.removeChild(t); }, 2600);
-}
-
-//--- Local Storage ---
-function getStoredLeads() {
-  let arr = JSON.parse(window.localStorage.getItem(LEADS_KEY) || "[]");
-  arr.forEach(lead => { if (!lead.followups) lead.followups = []; });
-  return arr;
-}
-function saveLeads() {
-  window.localStorage.setItem(LEADS_KEY, JSON.stringify(leads));
-}
-// --- Add Lead ---
 document.getElementById('leadForm').onsubmit = function(e) {
   e.preventDefault();
   let eventName = document.getElementById('leadEventName').value.trim();
@@ -341,7 +658,6 @@ document.getElementById('leadForm').onsubmit = function(e) {
   if (!/^\S+@\S+\.\S+$/.test(email)) { showToast("Invalid email", false); return; }
   if (!/^\d{8,}/.test(phone)) { showToast("Enter valid phone no.", false); return; }
   if (leads.some(l=>l.email.trim().toLowerCase()===email.toLowerCase())) { showToast("Email already exists!", false); return; }
-  // IST time:
   let now = new Date();
   let istOffset = 5.5*60*60*1000; // ms
   let addedOnIST = new Date(now.getTime() + istOffset - now.getTimezoneOffset()*60000);
@@ -360,10 +676,8 @@ document.getElementById('leadForm').onsubmit = function(e) {
   this.reset();
   showToast('Lead added!');
 };
-// --- renderLeads: dashboard (dashboard tab hidden, but if you want a quick table, unhide below)
-function renderLeads() {} // Keep dashboard minimal, all list in All Leads
+function renderLeads() {} // all-leads only
 
-// --- All Leads Table with Added By, Added On (IST) ---
 function renderAllLeadsTable() {
   let q = document.getElementById('allSearchLead').value.trim().toLowerCase();
   let isAdmin = currentUser && currentUser.toUpperCase() === "SEM";
@@ -372,14 +686,11 @@ function renderAllLeadsTable() {
     <th>Society</th><th>Category</th><th>Remarks</th>
     <th>Added By</th><th>Added On (IST)</th><th>Follow-ups</th>
   </tr>`;
-
   let visibleLeads = isAdmin ? leads :
     leads.filter(l=>l.addedBy && l.addedBy.trim().toLowerCase()===currentUser.trim().toLowerCase());
-
   visibleLeads.filter(lead =>
     [lead.eventName,lead.email,lead.phone,lead.designation,lead.organisingSociety,lead.category,lead.remarks,lead.addedBy].join("|").toLowerCase().includes(q)
   ).sort((a,b)=>{
-      // DESCENDING by date by default
       return (b.addedOn||"").localeCompare(a.addedOn||"");
   }).forEach((lead, i) => {
     html += `<tr>
@@ -412,7 +723,6 @@ function renderAllLeadsTable() {
 }
 document.getElementById('allSearchLead').oninput = renderAllLeadsTable;
 
-// Follow-up Modal
 window.openFollowupModal = function(idx) {
   addFollowupForIdx = idx;
   document.getElementById('fLeadName').textContent = leads[idx].eventName;
@@ -487,6 +797,14 @@ function countTodayFollowups() {
 }
 window.onload = function() {
   currentUser = window.localStorage.getItem(SESSION_KEY);
+  leads = getStoredLeads();
+  if(currentUser=="developer") {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('superAdminPanel').style.display = '';
+    document.getElementById('devUsername').textContent = currentUser;
+    window.superadmin = new SuperAdmin();
+    return;
+  }
   if(currentUser) showDashboard();
 };
 document.getElementById('modalBg').onclick = closeFollowupModal;
