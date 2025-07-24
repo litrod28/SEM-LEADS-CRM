@@ -15,10 +15,14 @@ function showToast(message, success = true) {
 class App {
   constructor() {
     this.users = [
-      { username: "shikha", password: "shikha@123" },
-      { username: "tripti", password: "tripti@123" },
-      { username: "anshi",  password: "anshi@123"  },
-      { username: "SEM",    password: "sem@ops123" }
+      { username: "shikha",    password: "shikha@123"   },
+      { username: "tripti",    password: "tripti@123"   },
+      { username: "anshi",     password: "anshi@123"    },
+      { username: "SEM",       password: "sem@ops123"   },
+      { username: "sushant",   password: "sush@123"     },
+      { username: "gaurav",    password: "gaurav@123"   },
+      { username: "yash",      password: "yash@123"     },
+      { username: "developer", password: "dev041228"    }
     ];
     this.LEADS_KEY = "semleads_leads";
     this.SESSION_KEY = "semleads_user";
@@ -246,5 +250,18 @@ class App {
     document.getElementById('calendar-list').innerHTML = html || "<em>No follow-ups scheduled for today.</em>";
   }
   countTodayFollowups() {
-    let now = new Date(),
-      yyyy = now.getFullYear(), mm = now.getMonth(), dd = now.get
+    let now = new Date(), yyyy = now.getFullYear(), mm = now.getMonth(), dd = now.getDate();
+    let todayStart = new Date(yyyy,mm,dd,0,0,0).getTime(), todayEnd = new Date(yyyy,mm,dd,23,59,59).getTime();
+    let count = 0;
+    this.leads.forEach((lead) =>
+      (lead.followups||[]).forEach((f) => {
+        let ts = new Date(f.datetime).getTime();
+        if (ts >= todayStart && ts <= todayEnd) count++;
+      })
+    );
+    return count;
+  }
+}
+
+// Instantiate the app (AFTER the DOM is loaded)
+window.onload = ()=>{ window.app = new App(); };
