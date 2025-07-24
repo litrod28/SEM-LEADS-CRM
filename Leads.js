@@ -32,8 +32,8 @@ class App {
   }
   init() {
     document.getElementById('loginForm').onsubmit = e => { e.preventDefault(); this.handleLogin(); };
-    document.getElementById('loginUser').oninput = document.getElementById('loginPass').oninput
-      = ()=> { document.getElementById('error').textContent = ""; };
+    document.getElementById('loginUser').oninput =
+    document.getElementById('loginPass').oninput = ()=> { document.getElementById('error').textContent = ""; };
     document.getElementById('leadForm').onsubmit = e => { e.preventDefault(); this.addLead(); };
     document.getElementById('tabAdmin').onclick = ()=>this.showAdminSection();
     document.getElementById('tabDashboard').onclick = ()=>this.showLeadsSection();
@@ -43,8 +43,18 @@ class App {
     document.getElementById('followupForm').onsubmit = e => { e.preventDefault(); this.addFollowup(); };
     window.logout = ()=>this.logout();
     document.body.addEventListener("click", e => this.handleListDelegations(e));
+    // On load, check for session and set theme appropriately
     this.currentUser = window.localStorage.getItem(this.SESSION_KEY) || null;
+    this.applyTheme();
     if (this.currentUser) this.showDashboard();
+  }
+  // New: Applies dark theme if developer is logged in
+  applyTheme() {
+    if (this.currentUser === "developer") {
+      document.body.classList.add("dev-dark");
+    } else {
+      document.body.classList.remove("dev-dark");
+    }
   }
   toast(msg, ok=true) { showToast(msg,ok); }
   error(msg) { document.getElementById('error').textContent = msg; }
@@ -55,10 +65,13 @@ class App {
     if (!user) return this.error("Invalid username or password.");
     window.localStorage.setItem(this.SESSION_KEY, user.username);
     this.currentUser = user.username;
+    this.applyTheme(); // <<=== call after login
     this.showDashboard();
   }
   logout() {
-    window.localStorage.removeItem(this.SESSION_KEY); location.reload();
+    window.localStorage.removeItem(this.SESSION_KEY);
+    document.body.classList.remove("dev-dark"); // Remove dark on logout
+    location.reload();
   }
   setTabActive(tabId) {
     ['tabAdmin','tabDashboard','tabAllLeads'].forEach(id=>{
@@ -92,6 +105,7 @@ class App {
     document.getElementById('adminTodaysFollowups').textContent=this.countTodayFollowups();
   }
   showDashboard() {
+    this.applyTheme(); // <<=== Apply theme (again, in case user restored session)
     document.getElementById('welcome-popup').style.display = 'block';
     setTimeout(() => {
       document.getElementById('welcome-popup').style.display = 'none';
