@@ -4,19 +4,13 @@
   <meta charset="UTF-8">
   <title>SEM Leads CRM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Modern, minimal floating shapes & updated UI styles -->
   <style>
     body {
-      background: #f5faff;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0;
-      min-height: 100vh;
-      overflow-x: hidden;
+      background: #f5faff; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; min-height: 100vh; overflow-x: hidden;
     }
     #container {
       max-width: 1000px;
-      margin: 40px auto;
+      margin: 40px auto 0 auto;
       background: #fff;
       padding: 24px;
       border-radius: 12px;
@@ -25,12 +19,9 @@
       z-index: 1;
       animation: slidefadein 0.9s cubic-bezier(0.4,0.3,0.3,1);
     }
-    @keyframes slidefadein {
-      from { opacity:0; transform: translateY(30px);}
-      to   { opacity:1; transform: translateY(0);}
-    }
-    h1 { color: #1877cc; font-size:2.3em;}
-    .row { display: flex; gap: 24px;}
+    @keyframes slidefadein { from { opacity:0; transform: translateY(30px);} to { opacity:1; transform: translateY(0);} }
+    h1 { color: #1877cc; font-size:2.3em; }
+    .row { display: flex; gap: 24px; }
     .column { flex: 1; min-width:0; }
     label { display: block; font-size: 15px; margin-top: 14px; }
     input, select, textarea {
@@ -38,9 +29,7 @@
       margin-bottom: 10px; border-radius: 5px; border: 1px solid #d2eaff;
       background: #fafdff; transition: border .2s, box-shadow .20s;
     }
-    input:focus, select:focus, textarea:focus {
-      outline: none; border-color: #38aacc; box-shadow: 0 2px 10px #76cbf825;
-    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #38aacc; box-shadow: 0 2px 10px #76cbf825; }
     button {
       background: linear-gradient(90deg,#2389fe 70%,#2ec1a2 100%);
       color: #fff; padding: 10px 26px; font-size: 16px; border: none;
@@ -61,8 +50,7 @@
     th, td { border: 1px solid #cce0fc; padding: 10px 8px;}
     th {
       background: linear-gradient(90deg,#e2effc 60%,#eafcf7 100%);
-      color: #1877cc; font-weight: 600;
-      letter-spacing:0.5px;
+      color: #1877cc; font-weight: 600; letter-spacing:0.5px;
     }
     tr { transition: background 0.13s;}
     tr:hover { background: #eff7ff; }
@@ -82,7 +70,8 @@
     .modal.open, .modal-bg.open { display: block;}
     #error { color: #d83c2b; margin-bottom: 12px; font-size: 1.11em; min-height: 1.8em;}
     #welcome-popup {
-      display:none; position:fixed; left:50%; top:21vw; transform:translate(-50%,-50%); background:linear-gradient(55deg, #25a4, #2ec1a2bb 110%); color:#fff; padding:32px 50px; border-radius:19px; font-size:2.18rem; box-shadow:0 8px 40px #9af9; z-index:2000; text-align:center;
+      display:none; position:fixed; left:50%; top:21vw; transform:translate(-50%,-50%);
+      background:linear-gradient(55deg, #25a4, #2ec1a2bb 110%); color:#fff; padding:32px 50px; border-radius:19px; font-size:2.18rem; box-shadow:0 8px 40px #9af9; z-index:2000; text-align:center;
       animation: popupfade 1.2s;
     }
     @keyframes popupfade {0%{ opacity:0; transform:translate(-50%,-70%) scale(0.9);}80%{ opacity:1;}100%{opacity:1;transform:translate(-50%,-50%) scale(1);}}
@@ -90,7 +79,6 @@
     .tabbar button { background: #e7eef5; color: #1877cc; border-radius: 7px 7px 0 0; border: none; font-weight: 500; padding: 10px 27px; font-size: 1.07em;  transition: background 0.14s, color 0.2s;}
     .tabbar button.active, .tabbar button:focus { background: #1877cc; color: #fff;}
     .tabbar button:not(.active):hover { background: #aad6f7;}
-    /* Snackbar notifications */
     .snackbar {
       position: fixed; left: 50vw; bottom: 38px; transform:translateX(-50%);
       background: linear-gradient(90deg,#29a746,#1da5b9 85%);
@@ -108,7 +96,6 @@
       #allSearchLead { width: 100%; max-width: 100%;}
       .column { margin-bottom: 28px; }
     }
-    /* ---- Modern floating shapes ---- */
     .floating-bg {position: fixed; z-index: 0; inset: 0; pointer-events: none; overflow: hidden;}
     .float-shape { position: absolute; opacity: 0.15; filter: blur(0.7px); transition: opacity .4s;}
     .circle1 { width: 172px; height: 172px; left: 2vw; top: 11vh; border-radius: 50%; background: linear-gradient(45deg, #beeaff 50%, #c6f6e3 100%); animation: floatup1 9s linear infinite alternate;}
@@ -118,17 +105,23 @@
     .dot1 { left: 19vw; top: 77vh; animation: floatdot1 9.7s linear infinite alternate;}
     .dot2 { right: 18vw; top: 12vh; animation: floatdot2 11.4s linear infinite alternate;}
     .dot3 { left: 51vw; top: 33vh; background:#f5a623; animation: floatdot3 16s ease-in-out infinite alternate;}
-
     @keyframes floatup1 { 0% { transform: translateY(0) scale(1);} 100% { transform: translateY(-38px) scale(1.07);} }
     @keyframes floatleft { 0% { transform: translateX(0) scale(1);} 100% { transform: translateX(-26px) scale(1.09);} }
     @keyframes floatblob { 0% { transform: rotate(0deg) scale(1);} 100% { transform: rotate(17deg) scale(1.1);} }
     @keyframes floatdot1 { 0% { transform: translateY(0);} 100% { transform: translateY(-32px);} }
     @keyframes floatdot2 { 0% { transform: translateY(0);} 100% { transform: translateY(33px);} }
     @keyframes floatdot3 { 0% { transform: translateY(0);} 100% { transform: translateY(-31px);} }
+    #copyright {
+      margin: 33px auto 22px auto; font-size:1.04em; text-align: center;
+      color: #afb3bb; letter-spacing:0.15em;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      opacity: 0.93;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
-<!-- Floating minimal design background -->
+<!-- Floating shapes background -->
 <div class="floating-bg">
   <div class="float-shape circle1"></div>
   <div class="float-shape circle2"></div>
@@ -137,28 +130,19 @@
   <div class="float-shape dot2"></div>
   <div class="float-shape dot3"></div>
 </div>
-
 <div id="welcome-popup">Welcome, Admin!</div>
-
 <div id="container">
   <div id="login-section">
     <h1>SEM Leads Login</h1>
     <div id="error"></div>
-    <form id="loginForm">
+    <form id="loginForm" autocomplete="off">
       <label>Username</label>
       <input type="text" id="loginUser" autocomplete="username" required>
       <label>Password</label>
       <input type="password" id="loginPass" autocomplete="current-password" required>
       <button type="submit">Login</button>
     </form>
-    <p style="font-size: 14px; margin-top:18px; color:#888;">
-      Test Users: <br>
-      sushant / sush@123<br>
-      yash / yash@123<br>
-      gaurav / gaurav@123<br>
-    </p>
   </div>
-  <!-- Dashboard, Tabs, Admin Section, All Leads, and Modal unchanged below -->
   <div id="dashboard-section" style="display:none;">
     <div style="display:flex; justify-content:space-between;align-items:center;">
       <h1>SEM Leads Dashboard</h1>
@@ -173,7 +157,7 @@
     <div class="row" id="dashboardContentRow">
       <div class="column">
         <h2>Add New Lead</h2>
-        <form id="leadForm">
+        <form id="leadForm" autocomplete="off">
           <label>Event Name</label>
           <input type="text" id="leadEventName" required>
           <label>Email</label>
@@ -238,9 +222,9 @@
     <button type="submit">Add</button>
   </form>
 </div>
-
+<!-- Copyright mark -->
+<div id="copyright">Designed by Sushant Kumar</div>
 <script>
-// --- Advanced JS notification ---
 function showToast(message, success = true) {
   let t = document.createElement("div");
   t.className = "snackbar";
@@ -250,78 +234,62 @@ function showToast(message, success = true) {
   t.textContent = message;
   document.body.appendChild(t);
   setTimeout(() => { t.style.opacity = "0"; }, 2200);
-  setTimeout(() => { document.body.removeChild(t); }, 2600);
+  setTimeout(() => { if(t.parentNode) t.parentNode.removeChild(t); }, 2600);
 }
-
+// -- USERS NEW LIST
 const users = [
-  { username: "sushant", password: "sush@123" },
-  { username: "yash", password: "yash@123" },
-  { username: "gaurav", password: "gaurav@123" }
+  {username:"shikha", password:"shikha@123"},
+  {username:"tripti", password:"tripti@123"},
+  {username:"anshi",  password:"anshi@123"},
+  {username:"SEM",    password:"sem@ops123"}
 ];
-const LEADS_KEY = "semleads_leads";
-const SESSION_KEY = "semleads_user";
+const LEADS_KEY = "semleads_leads", SESSION_KEY = "semleads_user";
 let currentUser = null, leads = [], addFollowupForIdx = null;
-
-// Tab switch
 function setTabActive(tabId) {
-  const tabBtns = {
-    tabAdmin: document.getElementById("tabAdmin"),
-    tabDashboard: document.getElementById("tabDashboard"),
-    tabAllLeads: document.getElementById("tabAllLeads")
-  };
-  for (const k in tabBtns) tabBtns[k] && tabBtns[k].classList.remove("active");
-  if (tabBtns[tabId]) tabBtns[tabId].classList.add("active");
+  const tabBtns = {tabAdmin:document.getElementById("tabAdmin"),tabDashboard:document.getElementById("tabDashboard"),tabAllLeads:document.getElementById("tabAllLeads")};
+  for(const k in tabBtns) tabBtns[k]&&tabBtns[k].classList.remove("active");
+  if(tabBtns[tabId]) tabBtns[tabId].classList.add("active");
 }
 function showLeadsSection() {
   setTabActive("tabDashboard");
-  document.getElementById('admin-section').style.display = 'none';
-  document.getElementById('dashboardContentRow').style.display = '';
-  document.getElementById('all-leads-section').style.display = 'none';
-  document.getElementById('dashboard-section').style.display = '';
+  document.getElementById('admin-section').style.display='none';
+  document.getElementById('dashboardContentRow').style.display='';
+  document.getElementById('all-leads-section').style.display='none';
+  document.getElementById('dashboard-section').style.display='';
 }
 function showAllLeadsSection() {
   setTabActive("tabAllLeads");
-  document.getElementById('admin-section').style.display = 'none';
-  document.getElementById('dashboardContentRow').style.display = 'none';
-  document.getElementById('all-leads-section').style.display = '';
-  document.getElementById('dashboard-section').style.display = '';
+  document.getElementById('admin-section').style.display='none';
+  document.getElementById('dashboardContentRow').style.display='none';
+  document.getElementById('all-leads-section').style.display='';
+  document.getElementById('dashboard-section').style.display='';
   renderAllLeadsTable();
 }
 function showAdminSection() {
   setTabActive("tabAdmin");
-  document.getElementById('dashboard-section').style.display = '';
-  document.getElementById('admin-section').style.display = '';
-  document.getElementById('dashboardContentRow').style.display = 'none';
-  document.getElementById('all-leads-section').style.display = 'none';
-  document.getElementById('adminName').textContent = currentUser ?? "Admin";
-  document.getElementById('adminTotalLeads').textContent = leads.length;
-  document.getElementById('adminTodaysFollowups').textContent = countTodayFollowups();
+  document.getElementById('dashboard-section').style.display='';
+  document.getElementById('admin-section').style.display='';
+  document.getElementById('dashboardContentRow').style.display='none';
+  document.getElementById('all-leads-section').style.display='none';
+  document.getElementById('adminName').textContent=currentUser??"Admin";
+  document.getElementById('adminTotalLeads').textContent=leads.length;
+  document.getElementById('adminTodaysFollowups').textContent=countTodayFollowups();
 }
-
-// --- Login Logic ---
-function showError(msg) {
-  document.getElementById('error').textContent = msg;
-}
-function loginCheck(username, password) {
-  return users.find(u => u.username === username && u.password === password);
-}
-document.getElementById('loginUser').oninput = document.getElementById('loginPass').oninput = function(){
-  document.getElementById('error').textContent = '';
-};
+//--- LOGIN ---
+function showError(msg) {document.getElementById('error').textContent=msg;}
+function loginCheck(username, password) {return users.find(u=>u.username.trim().toLowerCase()===username.toLowerCase()&&u.password===password);}
+document.getElementById('loginUser').oninput=document.getElementById('loginPass').oninput=function(){document.getElementById('error').textContent='';};
 document.getElementById('loginForm').onsubmit = function(e) {
   e.preventDefault();
-  let user = document.getElementById('loginUser').value.trim();
-  let pass = document.getElementById('loginPass').value;
+  let user = document.getElementById('loginUser').value.trim(), pass = document.getElementById('loginPass').value;
   let res = loginCheck(user, pass);
   if (!res) return showError('Invalid username or password.');
   window.localStorage.setItem(SESSION_KEY, user);
   currentUser = user;
   showDashboard();
 };
-
 function logout() {
-  window.localStorage.removeItem(SESSION_KEY);
-  location.reload();
+  window.localStorage.removeItem(SESSION_KEY); location.reload();
 }
 function showDashboard() {
   document.getElementById('welcome-popup').style.display = 'block';
@@ -340,8 +308,7 @@ function showDashboard() {
     showToast(`Welcome, ${currentUser}!`, true);
   }, 950);
 }
-
-// Data Storage
+//--- Local Storage ---
 function getStoredLeads() {
   let arr = JSON.parse(window.localStorage.getItem(LEADS_KEY) || "[]");
   arr.forEach(lead => { if (!lead.followups) lead.followups = []; });
@@ -350,25 +317,31 @@ function getStoredLeads() {
 function saveLeads() {
   window.localStorage.setItem(LEADS_KEY, JSON.stringify(leads));
 }
-
-// Add Lead (with checks)
+// --- Add Lead ---
 document.getElementById('leadForm').onsubmit = function(e) {
   e.preventDefault();
   let eventName = document.getElementById('leadEventName').value.trim();
-  let email = document.getElementById('leadEmail').value.trim();
-  let phone = document.getElementById('leadPhone').value.trim();
+  let email     = document.getElementById('leadEmail').value.trim();
+  let phone     = document.getElementById('leadPhone').value.trim();
   let designation = document.getElementById('leadDesignation').value.trim();
-  let society = document.getElementById('leadOrgSociety').value.trim();
-  let category = document.getElementById('leadCategory').value;
-  if (!eventName || !email || !designation || !society || !category) {
+  let society   = document.getElementById('leadOrgSociety').value.trim();
+  let category  = document.getElementById('leadCategory').value;
+  if (!eventName||!email||!designation||!society||!phone||!category) {
     showToast("Please fill all the fields!", false); return;
   }
   if (!/^\S+@\S+\.\S+$/.test(email)) { showToast("Invalid email", false); return; }
   if (!/^\d{8,}/.test(phone)) { showToast("Enter valid phone no.", false); return; }
-  if (leads.some(l => l.email === email)) { showToast("Email already exists!", false); return; }
+  if (leads.some(l=>l.email.trim().toLowerCase()===email.toLowerCase())) { showToast("Email already exists!", false); return; }
+  // IST time:
+  let now = new Date();
+  let istOffset = 5.5*60*60*1000; // ms
+  let addedOnIST = new Date(now.getTime() + istOffset - now.getTimezoneOffset()*60000);
   let newLead = {
     eventName, email, phone, designation, organisingSociety: society,
-    category, remarks: document.getElementById('leadRemarks').value.trim(), followups: []
+    category, remarks: document.getElementById('leadRemarks').value.trim(),
+    addedBy: currentUser,
+    addedOn: addedOnIST.toISOString(),
+    followups: []
   };
   leads.push(newLead);
   saveLeads();
@@ -378,29 +351,29 @@ document.getElementById('leadForm').onsubmit = function(e) {
   this.reset();
   showToast('Lead added!');
 };
+// --- renderLeads: dashboard (dashboard tab hidden, but if you want a quick table, unhide below)
+// function renderLeads() {}
+function renderLeads() {} // Keep dashboard minimal, all list in All Leads
 
-// Render Leads Table (hidden by default in dashboard)
-function renderLeads() {
-  // No dashboard table
-}
-
-// All Leads Table (searchable)
+// --- All Leads Table with Added By, Added On (IST) ---
 function renderAllLeadsTable() {
   let q = document.getElementById('allSearchLead').value.trim().toLowerCase();
-  let html = `<table id="allLeadsTable">
-    <tr>
-      <th>Event Name</th>
-      <th>Email</th>
-      <th>Phone</th>
-      <th>Designation</th>
-      <th>Organising Society</th>
-      <th>Category</th>
-      <th>Remarks</th>
-      <th>Follow-ups</th>
-    </tr>`;
-  leads.filter(lead =>
-    [lead.eventName, lead.email, lead.phone, lead.designation, lead.organisingSociety, lead.category, lead.remarks].join("|").toLowerCase().includes(q)
-  ).forEach((lead, i) => {
+  let isAdmin = currentUser && currentUser.toUpperCase() === "SEM";
+  let html = `<table id="allLeadsTable"><tr>
+    <th>Event Name</th><th>Email</th><th>Phone</th><th>Designation</th>
+    <th>Society</th><th>Category</th><th>Remarks</th>
+    <th>Added By</th><th>Added On (IST)</th><th>Follow-ups</th>
+  </tr>`;
+
+  let visibleLeads = isAdmin ? leads :
+    leads.filter(l=>l.addedBy && l.addedBy.trim().toLowerCase()===currentUser.trim().toLowerCase());
+
+  visibleLeads.filter(lead =>
+    [lead.eventName,lead.email,lead.phone,lead.designation,lead.organisingSociety,lead.category,lead.remarks,lead.addedBy].join("|").toLowerCase().includes(q)
+  ).sort((a,b)=>{
+      // DESCENDING by date by default
+      return (b.addedOn||"").localeCompare(a.addedOn||"");
+  }).forEach((lead, i) => {
     html += `<tr>
       <td>${lead.eventName}</td>
       <td>${lead.email}</td>
@@ -408,19 +381,19 @@ function renderAllLeadsTable() {
       <td>${lead.designation}</td>
       <td>${lead.organisingSociety}</td>
       <td><span class='tag ${lead.category.split(' ')[0]}'>${lead.category}</span></td>
-      <td>${lead.remarks || ''}</td>
+      <td>${lead.remarks||''}</td>
+      <td>${lead.addedBy||""}</td>
+      <td>${lead.addedOn ? new Date(lead.addedOn).toLocaleString("en-IN",{timeZone:"Asia/Kolkata"}):""}</td>
       <td>
-        ${lead.followups.length}
-        <button type="button" onclick="openFollowupModal(${i})">➕ Add</button>
+        ${lead.followups?.length||0}
+        <button type="button" onclick="openFollowupModal(${leads.indexOf(lead)})">➕ Add</button>
         <br>
-        ${lead.followups.map((f,idx) =>
+        ${(lead.followups||[]).map((f,idx) =>
           `<div style="font-size:13px;padding:2px;">
-            📆 ${new Date(f.datetime).toLocaleString()}<br>
+            📆 ${new Date(f.datetime).toLocaleString("en-IN",{timeZone:"Asia/Kolkata"})}<br>
             <span style="color:#444;">${f.remark}</span>
-            <span style="color:${f.done?'#26b361':'#d0021b'};font-weight:bold;">
-              [${f.done?'Done':'Pending'}]
-            </span>
-            <button type="button" onclick="markFollowupDone(${i},${idx})" style="font-size:11px; margin-left:2px;">Mark Done</button>
+            <span style="color:${f.done?'#26b361':'#d0021b'};font-weight:bold;">[${f.done?'Done':'Pending'}]</span>
+            <button type="button" onclick="markFollowupDone(${leads.indexOf(lead)},${idx})" style="font-size:11px; margin-left:2px;">Mark Done</button>
           </div>`
         ).join('')}
       </td>
@@ -444,11 +417,9 @@ window.closeFollowupModal = function() {
   document.getElementById('modalBg').classList.remove('open');
   document.getElementById('followupModal').classList.remove('open');
 };
-
 document.getElementById('followupForm').onsubmit = function(e) {
   e.preventDefault();
-  let dt = document.getElementById('followupDate').value;
-  let remark = document.getElementById('followupRemark').value.trim();
+  let dt = document.getElementById('followupDate').value, remark = document.getElementById('followupRemark').value.trim();
   if (!dt) return showToast('Date and time required!', false);
   if (!remark) return showToast('Please enter remark!', false);
   leads[addFollowupForIdx].followups.push({ datetime: dt, remark: remark, done: false });
@@ -459,7 +430,6 @@ document.getElementById('followupForm').onsubmit = function(e) {
   renderAllLeadsTable();
   showToast('Follow-up added!');
 };
-
 window.markFollowupDone = function(leadIdx, fIdx) {
   if (leads[leadIdx].followups[fIdx].done) return showToast("Already done.", false);
   if (!confirm("Mark this follow-up as done?")) return;
@@ -470,8 +440,6 @@ window.markFollowupDone = function(leadIdx, fIdx) {
   renderAllLeadsTable();
   showToast('Marked done.', true);
 };
-
-// Calendar: Today's Follow-ups
 function renderTodayFollowups() {
   let now = new Date();
   let yyyy = now.getFullYear(), mm = now.getMonth(), dd = now.getDate();
@@ -515,6 +483,5 @@ window.onload = function() {
 };
 document.getElementById('modalBg').onclick = closeFollowupModal;
 </script>
-
 </body>
 </html>
