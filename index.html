@@ -4,450 +4,824 @@
   <meta charset="UTF-8">
   <title>CRM PORTAL SEM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Apple Glassmorphism/Blur CSS -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* === Apple Glassmorphism/Fluid Liquid UI Styles === */
-    body {
+    :root {
+      --glass-bg: rgba(255,255,255,0.20);
+      --glass-border: rgba(255,255,255,0.35);
+      --accent: #38b6ff;
+      --nav-active: #38b6ff50;
+      --nav-hover: #38b6ff77;
+      --glass-blur: 32px;
+      --glass-glow: 0 8px 32px 0 rgba(56,182,255,0.37);
+      --shine: linear-gradient(
+        120deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.6) 50%,
+        rgba(255,255,255,0) 99%
+      );
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+      font-size: 16px;
+    }
+    html, body {
+      height: 100%;
       margin: 0; padding: 0;
-      font-family: 'Inter', sans-serif;
-      min-height: 100vh;
-      background: url('your-blur-image.jpg') center/cover no-repeat fixed;
+      min-height:100vh;
+      background: linear-gradient(130deg, #dcd0ff 0%, #89f2ff 95%, #fbefe3 100%);
+      overflow-x: hidden;
       position: relative;
-      overflow: hidden;
-      backdrop-filter: blur(18px);
-      box-sizing: border-box;
+    }
+    body::before {
+      content: '';
+      position: fixed; left:0; top:0; right:0; bottom:0;
+      background: linear-gradient(45deg, rgba(77,205,255,.12) 0%, rgba(245,237,255,.19) 100%);
+      z-index: -2;
+      pointer-events:none;
+    }
+    .background-anim {
+      position: fixed; top:0; left:0; width: 100vw; height: 100vh;
+      z-index:-1; pointer-events:none; overflow:hidden;
+    }
+    .shape {
+      position: absolute;
+      border-radius: 50%;
+      opacity:.45;
+      filter: blur(4px);
+      animation: floatAnim 15s infinite alternate ease-in-out;
+      will-change: transform;
+    }
+    .shape.shape1 { background: linear-gradient(120deg, #24c6ff 10%, #efb0ff 90%); width:240px; height:240px; left:10%; top:10%; animation-delay: 0s;}
+    .shape.shape2 { background: linear-gradient(210deg, #e3fff9 5%, #fd89ff 95%); width:210px; height:180px; left:70%; top:22%; animation-delay: 2.6s;}
+    .shape.shape3 { background: linear-gradient(90deg, #fbe3ff, #72cfff 90%); width:130px; height:130px; left:15vw; top:75vh; animation-delay: 6.2s;}
+    .shape.shape4 { background: linear-gradient(120deg, #fde3ff 5%, #a4fafe 90%); width:160px; height:110px; left:80vw; top:80vh; animation-delay: 4.1s;}
+    @keyframes floatAnim {
+      0%   { transform:translateY(0) scale(1);}
+      100% { transform:translateY(45px) scale(1.08);}
     }
     .glass {
-      background: rgba(255,255,255,0.17);
-      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.20);
-      backdrop-filter: blur(16px) saturate(180%);
-      -webkit-backdrop-filter: blur(16px) saturate(180%);
-      border-radius: 18px;
-      border: 1.5px solid rgba(255,255,255,0.25);
-      transition: box-shadow 0.25s, border-color 0.3s, background 0.3s;
-    }
-    .glass-shine:hover, .active-tab {
-      background: rgba(255,255,255,0.35);
-      box-shadow: 0 8px 32px 0 rgba(5,114,255,0.18), 0 1px 8px 0 rgba(80,181,255,0.08);
-      border-color: rgba(120,200,255,0.70);
-    }
-    .header-bar {
-      display: flex; justify-content: space-between; align-items: center;
-      width: 100%; padding: 24px 40px 16px 40px;
-      backdrop-filter: blur(22px);
-      border-bottom: 1.5px solid rgba(200,200,255,0.20);
-      background: rgba(254,254,254,0.22);
-      position: sticky; top: 0; z-index: 20;
-    }
-    .header-bar .user-info {
-      display: flex; align-items: center; gap: 18px;
-    }
-    .header-bar .logout-btn {
-      background: rgba(40,142,205,0.20);
-      color: #247ec6; font-weight: 600;
-      border: none; border-radius: 10px;
-      padding: 8px 20px;
-      margin-left: 12px;
-      transition: background 0.25s, color 0.24s;
-    }
-    .header-bar .logout-btn:hover {
-      background: rgba(52,193,255,0.45);
-      color: #0b4878;
-      box-shadow: 0 0 24px 2px #59bcff44;
-    }
-    .main-content {
-      display: flex; flex-direction: row; min-height: calc(100vh - 92px);
-      margin: 32px auto 0 auto;
-      max-width: 1340px;
-      width: 95vw;
-      gap: 32px;
-    }
-    .sidebar-tabs {
-      width: 230px; min-width: 200px;
-      padding: 18px;
-      display: flex; flex-direction: column; gap: 16px;
-      justify-content: flex-start; align-items: stretch;
-    }
-    .tab-btn {
-      cursor: pointer;
-      padding: 16px 20px;
-      margin-bottom: 6px;
-      font-size: 1.09rem; font-weight: 600; color: #084366;
-      letter-spacing: 0.01em;
-      border: none; outline: none;
-      background: none;
-      transition: all .2s;
-      border-radius: 13px;
-      position: relative;
-      overflow: hidden;
-    }
-    .tab-btn::after {
-      content: '';
-      position: absolute; top: 3px; right: 3px; left: 3px; bottom: 3px;
-      border-radius: 12px;
-      opacity: 0; transition: opacity 0.24s;
-      pointer-events: none;
-      background: linear-gradient(100deg,rgba(59,182,255,.33) 20%,rgba(147,212,255,0) 70%);
-      z-index: 1;
-    }
-    .tab-btn:hover::after, .tab-btn.active-tab::after { opacity: 1}
-    .tab-btn.active-tab { color: #005ae1;}
-    .main-viewer {
-      flex: 1; min-width: 0;
-      padding: 40px;
-      border-radius: 18px;
-      display: flex; flex-direction: column;
-      gap: 24px;
-      max-width: 1000px;
-    }
-    .leads-stat-cards {
-      display: flex; gap: 16px;
-      margin-bottom: 22px;
-    }
-    .stat-card {
-      flex: 1;
-      text-align: center;
-      padding: 18px;
-      border-radius: 15px;
-      font-weight: 600;
-      background: rgba(255,255,255,0.36);
-      font-size: 1.17rem;
-      color: #12477a;
-      box-shadow: 0 0 18px 0 rgba(59,182,255,.06);
-      border: 1.3px solid rgba(80,181,255,0.25);
-    }
-    .lead-list {
-      background: rgba(255,255,255,0.27);
-      border-radius: 13px;
-      border: 1.2px solid rgba(120,180,255,0.15);
-      margin-top: 28px;
-      padding: 10px 0px 8px 0px;
-      overflow-y: auto; max-height: 290px;
-      box-shadow: 0 1px 10px 0 #00aaff12;
-    }
-    .lead-list-item {
-      padding: 14px 24px; margin: 1.5px 0;
-      display: flex; align-items: center; justify-content: space-between;
-      background: rgba(255,255,255,0.23);
-      border-radius: 9px;
-      cursor: pointer;
-      border: none; outline: none;
-      transition: background 0.22s, box-shadow 0.19s;
-    }
-    .lead-list-item:hover, .lead-list-item.selected {
-      background: rgba(60,180,255,0.18); box-shadow: 0 0 9px 0 #249cff33;
-    }
-    .field, .input-field, select, textarea {
-      padding: 10px 14px;
-      border-radius: 9px; font-size: 1rem;
-      border: 1px solid rgba(170,224,255,.22);
-      background: rgba(255,255,255,0.32);
-      outline: none;
-      margin-bottom: 21px; width: 100%;
-      box-shadow: none; transition: border 0.18s;
-    }
-    .input-field:focus, select:focus, textarea:focus {
-      border: 1px solid #52b6ff;
-    }
-    label {
-      font-size: .98rem; font-weight: 600;
-      color: #1252ad;
-      margin-bottom: 7px; display: block;
-      letter-spacing: -.01em;
-    }
-    .add-btn {
-      background: linear-gradient(90deg,#13a4ff 0%, #3db8ff 100%);
-      color: #fff; font-weight: 700; font-size: 1.09rem;
-      padding: 12px 38px; border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 8px;
-      box-shadow: 0 6px 22px #156ec926;
-      transition: background .2s, box-shadow .27s;
-    }
-    .add-btn:hover {
-      background: linear-gradient(90deg,#21c0fc 0%, #0198ff 100%);
-      box-shadow: 0 7px 32px #2469c959;
-    }
-    /* modern popup animation */
-    .popup {
-      position: fixed; z-index: 1000;
-      left: 50%; top: 7%;
-      transform: translate(-50%,-50%);
-      min-width: 320px; text-align: center;
-      background: rgba(60,186,255,0.32);
+      background: var(--glass-bg);
+      border: 1.5px solid var(--glass-border);
+      box-shadow: var(--glass-glow);
       border-radius: 22px;
-      color: #034574;
-      font-size: 1.27rem;
-      font-weight: 700; letter-spacing: .03em; padding: 20px 38px;
-      box-shadow: 0 10px 44px 0 #155ec98c;
-      backdrop-filter: blur(12px);
-      opacity: 0; pointer-events: none;
-      transition: opacity .4s;
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      transition: background 0.1s, box-shadow 0.1s, border 0.2s;
     }
-    .popup.active {opacity: 1; pointer-events: all;}
+    .glass:hover, .tab.active {
+      box-shadow: 0 0 32px 0 var(--accent), 0px 4px 32px rgba(56,182,255,0.25);
+      border: 1.5px solid #fff;
+      background-image: var(--shine);
+      background-size: 200% 200%;
+      animation: shineAnim 1s ease forwards;
+    }
+    @keyframes shineAnim {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    #login-screen {
+      min-height: 100vh; display: flex; justify-content: center; align-items: center;
+      flex-direction: column;
+      z-index: 1;
+      position:relative;
+    }
+    .login-box {
+      padding: 2.5rem 2rem 2.5rem 2rem; 
+      width: 340px;
+      display: flex; flex-direction: column; gap: 1.8rem;
+      align-items: center; min-width: 250px;
+      background: rgba(255,255,255,0.13);
+      box-shadow: 0 8px 50px 0 rgba(56,182,255,0.19);
+      border-radius: 28px;
+      backdrop-filter: blur(28px);
+      border: 2px solid rgba(255,255,255,0.16);
+    }
+    .login-box h2 { margin: 0 0 1.2rem 0; color: #326392; font-weight:700; letter-spacing: 2px;}
+    .login-row {
+      display: flex;
+      flex-direction: row;
+      gap: 1.1rem;
+      width: 100%;
+      justify-content:space-between;
+    }
+    .login-field {
+      display: flex; flex-direction: column; gap: 0.45rem; width: 100%;
+    }
+    .login-field label {
+      font-weight: 600;
+      color: #346199;
+      margin-bottom: 0.2rem;
+    }
+    .login-field input {
+      border: none; border-radius: 13px; background: rgba(255,255,255,0.24);
+      padding: 0.8rem;
+      font-size: 1rem; outline:none; width:100%;
+      color:#1b242b;
+      box-shadow: 0 0 0 0px #38b6ff00 inset;
+      transition: box-shadow 0.17s;
+    }
+    .login-field input:focus {
+      box-shadow: 0 0 0 2px var(--accent) inset;
+    }
+    .glass-btn {
+      cursor: pointer;
+      background: linear-gradient(120deg,#38b6ff,#f287ff);
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 16px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin-top:1.1rem;
+      box-shadow: 0 4px 16px 0 rgba(56,182,255,0.21);
+    }
+    .glass-btn:hover {
+      filter: brightness(1.09);
+      background: linear-gradient(110deg,#4cd9ff,#f771ffcc 90%);
+      text-shadow: 0 0 6px #fff;
+    }
+    .form-links {color:#6a3ab5; margin-top:.8rem;}
+    /* Popup */
+    .popup {
+      position: fixed;
+      top: 44px; left: 0; width: 100vw;
+      display: flex; z-index: 99999; justify-content: center;
+      animation: fadeInOut 1s linear forwards;
+      pointer-events: none;
+    }
+    .popup .glass {
+      min-width:130px;
+      font-weight:500;
+      color:#0b0d0e;
+      font-size: 1.15rem;
+      text-align:center;
+      padding:1.1rem 2.5rem;
+      box-shadow:0 0 32px 0 #38b6ff66 inset;
+    }
+    @keyframes fadeInOut {
+      0%{ opacity:0; transform:translateY(-30px);}
+      12%{ opacity:1; transform:translateY(0);}
+      80%{ opacity:1; }
+      100%{ opacity:0; transform:translateY(-30px);}
+    }
+    /* Nav/Logout */
+    .navbar {
+      display: flex; justify-content: flex-end; align-items: center;
+      width: 100%; padding: 22px 4vw 0 0;
+      position:fixed; z-index:3; top:0; left:0;
+      pointer-events:none;
+    }
+    .navbar .username {
+      color:#55458a;
+      font-weight:700;
+      letter-spacing: 1px;
+      background: rgba(98,199,255,0.12);
+      padding: 12px 28px;
+      border-radius: 40px;
+      margin-right: 20px;
+      box-shadow: 0 3px 24px #37b6ff28;
+      border: 1px solid #fff4;
+      pointer-events:auto;
+    }
+    .navbar button {
+      margin-left: 24px;
+      font-size: 1rem;
+      padding: 10px 24px;
+      background: linear-gradient(130deg, #ffd6fa90, #1b87b3bb);
+      border: none;
+      border-radius: 40px;
+      color: #4f2156;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow:0 2px 12px #38b6ff41;
+      transition: background .15s;
+      pointer-events:auto;
+      position:relative;
+      z-index:5;
+    }
+    .navbar button:hover {
+      background: #f2aaff;
+      color: #534e87;
+    }
+    @media (max-width: 1100px){
+      .navbar {padding-right: 1vw;}
+    }
+    @media (max-width: 600px){
+      .navbar {padding-right: 0; top:0;}
+      .navbar .username {padding:10px 14px;}
+      .navbar button {padding: 8px 8vw;}
+    }
+    /* Dashboard */
+    .dashboard {
+      max-width: 1150px; margin: 120px auto 0 auto;
+      background:none; min-height:650px;
+      padding: 36px 3vw 40px 3vw;
+    }
+    .tab-bar {
+      display: flex; gap: 2.3rem; margin-bottom: 2.5rem;
+    }
+    .tab {
+      flex: 1 1 0; min-width: 160px;
+      text-align: center; padding: 1.1rem 0.9rem;
+      cursor: pointer; color: #003348;
+      font-weight: 600;
+      font-size: 1.13rem;
+      border-radius: 22px;
+      transition: box-shadow .16s, background .16s, color .22s;
+      background: rgba(255,255,255,0.10);
+      background-clip: padding-box;
+      position:relative;
+      margin-right: .5rem;
+    }
+    .tab.active, .tab:hover {
+      color:#1f2e45;
+      background: var(--nav-hover);
+      box-shadow: 0 0 22px 0 #fdafff44, 0px 3px 24px 0 #38b6ff47;
+      background-image: var(--shine);
+      background-size: 180% 180%;
+      animation: shineAnim .7s ease;
+    }
+    .tab:last-child { margin-right:0;}
+    /* Main content panels */
+    .tab-content {
+      animation: fadeInTab 0.6s cubic-bezier(.5,.02,.42,1.09);
+    }
+    @keyframes fadeInTab { 0%{opacity:.01;transform: translateY(24px);} 100%{opacity:1;transform: translateY(0);} }
+    /* Cards */
+    .card {
+      background: rgba(255,255,255,0.15);
+      border-radius: 21px;
+      box-shadow: var(--glass-glow);
+      margin-bottom: 2rem;
+      padding: 1.8rem 1.2rem 1.4rem 1.8rem;
+      backdrop-filter: blur(20px);
+    }
+    .card .section-title { font-size:1.12rem; font-weight:700; color: #25344c; }
+    /* Table design */
+    .leads-table, .report-table {
+      width: 100%; border-collapse: separate; border-spacing: 0 9px;
+    }
+    .leads-table th, .leads-table td, .report-table th, .report-table td {
+      background: rgba(255,255,255,0.19);
+      text-align: left;
+      padding: 0.65rem 0.62rem;
+      border-radius: 12px;
+      color: #002841;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+    .leads-table th, .report-table th { font-weight:700; color:#103254; background:var(--glass-bg);}
+    .leads-table input, .leads-table textarea {
+      background: #fff9;
+      border: 1px solid #38b6ff31;
+      border-radius: 5px; padding:2px 4px;
+      width: 96%; font-size: 1em;
+      outline:none;
+    }
+    .leads-table input:focus, .leads-table textarea:focus { box-shadow: 0 0 0 2px #d037ff77; }
+    /* Lead Form */
+    .lead-form {
+      display: flex; flex-direction: column; gap: 1.2rem; max-width: 500px;
+    }
+    .lead-form label { font-weight:500; font-size:0.97rem; color:#135684; }
+    .lead-form input, .lead-form select, .lead-form textarea {
+      border: none; background: rgba(255,255,255,0.35); padding: 0.82rem 1rem;
+      border-radius: 14px;
+      margin-bottom: 0.4rem;
+      font-size: 1rem;
+      font-family: inherit;
+      color:#1b232b;
+      outline: none;
+      box-shadow: 0 1px 8px #38b6ff17;
+      transition: background .19s, box-shadow .22s;
+    }
+    .lead-form input:focus, select:focus, textarea:focus {
+      background: #fff8;
+      box-shadow: 0 0 0 3px #eeb0ff77;
+    }
+    .lead-form select { cursor:pointer; }
+    .lead-form textarea { resize: vertical; min-height: 48px; }
+    /* Toggle/checkbox glass style (for lead stage) */
+    .lead-stage {
+      display: flex; gap: .62rem; margin:0.62rem 0 0.9rem 0; flex-wrap:wrap;
+    }
+    .lead-stage label {
+      display: flex; align-items: center; gap: 0.3rem;
+      padding: 0.4rem 1rem;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.16);
+      color: #263340;
+      box-shadow: 0 2px 10px #38b6ff22;
+      cursor:pointer;
+      transition: background .16s, box-shadow .2s, color .13s;
+      font-weight: 500;
+      border: 1px solid #38b6ff22;
+    }
+    .lead-stage input[type=radio]:checked+span {
+      color: #e45fff;
+      text-shadow: 0 0 5px #feb6ffac;
+    }
+    /* Add Follow-up button */
+    .followup-btn {
+      padding: .62rem 1.2rem; border-radius: 14px; border: none;
+      background: linear-gradient(120deg,#24c6ff,#ffb2f990);
+      color:#fff; font-weight:600; cursor:pointer; margin-top:.2rem;
+      transition: background 0.18s, box-shadow 0.18s;
+      box-shadow: 0 1.3px 8px #38b6ff19;
+      font-size:1.06em;
+    }
+    .followup-btn:hover { background: #d53fff; }
+    /* Today's follow-up toggle */
+    .toggle-today {
+      margin-left:2rem;
+      position:relative;
+      display:inline-flex;align-items:center;gap:0.22em;
+      font-size:.99em;
+    }
+    .toggle-today input[type=checkbox]{
+      accent-color:#8b3cfa;
+      transform:scale(1.1);
+    }
+    .search-lead {
+      padding: 0.5rem 1.2rem;
+      border-radius: 18px;border:none;
+      background:#fff9;
+      font-size:1em;
+      width: 230px;
+      margin-left:1rem;
+    }
     /* Responsive */
-    @media (max-width: 1050px){
-     .main-content{flex-direction:column;}
-     .sidebar-tabs { flex-direction: row; width: 96vw;}
+    @media (max-width: 770px) {
+      .dashboard {padding: 26px 2vw;}
+      .tab-bar {flex-direction: column; gap:16px;}
+      .tab{margin-right:0;min-width: 80px;}
+      .login-row {flex-direction:column; gap:16px;}
     }
-    @media (max-width:760px){
-     .main-content,.main-viewer{padding:0 0 30px 0;}
-     .main-viewer{max-width:100vw;}
+    @media (max-width:560px){
+      .card   {padding: 1rem;}
+      .lead-form {max-width:99vw;}
+      .leads-table, .report-table {font-size:0.93em;}
     }
+    /* Custom scroll for lead & dashboard */
+    .dashboard, .tab-content {scrollbar-color:#c585fe #f2e6ff;}
+    ::-webkit-scrollbar { width:8px;}
+    ::-webkit-scrollbar-thumb { background:#cabafe; border-radius:18px;}
+
+    /* Datepicker style */
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+      filter: brightness(1.3) sepia(.66) hue-rotate(220deg);
+    }
+    /* Keep scrollbar visible, not overlapped */
+    body {scrollbar-gutter: stable;}
   </style>
 </head>
 <body>
-  <!-- Welcome Popup (shown with JS after login) -->
-  <div id="welcomePopup" class="popup"></div>
-
-  <!-- Header -->
-  <div class="header-bar glass">
-    <div class="user-info">
-      <span id="portalTitle" style="font-size:1.30rem;font-weight:700;background: linear-gradient(90deg,#12a5ff 0,#0093ff 100%);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">CRM Portal SEM</span>
-      <span id="userNameBadge" class="glass" style="font-weight:600;padding:8px 16px; font-size:1.01rem; color:#1693e4; border-radius:7px;"></span>
-    </div>
-    <button class="logout-btn" id="logoutBtn">Logout</button>
+  <div class="background-anim">
+    <div class="shape shape1"></div>
+    <div class="shape shape2"></div>
+    <div class="shape shape3"></div>
+    <div class="shape shape4"></div>
   </div>
-
-  <div class="main-content">
-    <!-- Sidebar/Tabs -->
-    <div class="sidebar-tabs glass glass-shine">
-      <button class="tab-btn active-tab" id="tabUser" onclick="changeTab('userTab')" style="display:none;">User</button>
-      <button class="tab-btn" id="tabAddLead" onclick="changeTab('addLeadTab')" style="display:none;">Add Lead</button>
-      <button class="tab-btn" id="tabMyLeads" onclick="changeTab('myLeadsTab')" style="display:none;">My Leads</button>
-      <button class="tab-btn" id="tabAddAssignLead" onclick="changeTab('addAssignLeadTab')" style="display:none;">Add & Assign Lead</button>
-      <button class="tab-btn" id="tabAllLeads" onclick="changeTab('allLeadsTab')" style="display:none;">All Leads</button>
-      <button class="tab-btn" id="tabReport" onclick="changeTab('reportTab')" style="display:none;">Report</button>
-      <button class="tab-btn" id="tabSuperAdmin" onclick="changeTab('superAdminTab')" style="display:none;">Super Admin Panel</button>
+  <!-- Welcome Popup -->
+  <div id="popup" class="popup" style="display:none;">
+    <div class="glass" id="popup-content"></div>
+  </div>
+  <!-- Login Screen -->
+  <div id="login-screen">
+    <form class="login-box glass" onsubmit="login(event)">
+      <h2>CRM PORTAL SEM</h2>
+      <!-- Align fields in a row -->
+      <div class="login-row">
+        <div class="login-field">
+          <label for="username">Username</label>
+          <input id="username" autocomplete="username" required>
+        </div>
+        <div class="login-field">
+          <label for="password">Password</label>
+          <input type="password" id="password" autocomplete="current-password" required>
+        </div>
+      </div>
+      <button class="glass-btn" type="submit">Login</button>
+      <div class="form-links">Usernames: sushant, gaurav, yash, shikha, tripti, anshi, sem, developer</div>
+    </form>
+  </div>
+  <!-- Main Dashboard -->
+  <div id="main-app" style="display:none;">
+    <div class="navbar">
+      <span class="username" id="user-label"></span>
+      <button onclick="logout()">Logout</button>
     </div>
-
-    <!-- Main Viewer Area: tabbed content below -->
-    <div class="main-viewer glass" id="mainViewer">
-      <!-- --- LOGIN PAGE(default) --- -->
-      <div id="loginPage" style="width:100%; padding:70px 0; display:block;">
-        <form class="glass" id="loginForm" autocomplete="off" style="max-width:380px;margin:45px auto 0 auto;padding:32px 32px 24px 32px;text-align:center;">
-          <h2 style="font-weight:700;color:#0e4a75;font-size:1.5rem;margin-bottom:12px;">Log In</h2>
-          <div style="margin-bottom:23px;">
-            <label for="username">Username</label>
-            <input type="text" id="username" class="input-field" required autofocus autocomplete="off" />
-          </div>
-          <div style="margin-bottom:18px;">
-            <label for="password">Password</label>
-            <input type="password" id="password" class="input-field" required />
-          </div>
-          <button type="submit" class="add-btn">Login</button>
-        </form>
-      </div>
-
-      <!-- --- USER DASHBOARD --- -->
-      <div id="userTab" style="display:none;">
-        <div class="leads-stat-cards">
-          <div class="stat-card"><span id="leadCount">0</span><div style="font-size:.99rem;font-weight:500">Leads Added</div></div>
-          <div class="stat-card"><span id="todayFollowUpCount">0</span><div style="font-size:.99rem;font-weight:500">Follow-ups Today</div></div>
-          <div class="stat-card"><span id="overdueCount">0</span><div style="font-size:.99rem;font-weight:500">Overdue Follow-ups</div></div>
-        </div>
-        <div>
-          <h3 style="font-weight:700;">Follow-up Reminders (Today):</h3>
-          <ul id="todayFollowUpsList" style="margin:0 0 32px 0;padding:0;list-style:none;font-size:1.08rem;"></ul>
-        </div>
-      </div>
-
-      <div id="addLeadTab" style="display:none;">
-        <h3 style="font-weight:700;">Add New Lead</h3>
-        <form id="addLeadForm">
-          <label>Event Name<input type="text" name="eventName" class="input-field" required></label>
-          <label>Organising Society<input type="text" name="organisingSociety" class="input-field" required></label>
-          <label>Contact Person<input type="text" name="contactPerson" class="input-field" required></label>
-          <label>Phone No.<input type="tel" name="phone" class="input-field" required></label>
-          <label>Email<input type="email" name="email" class="input-field" required></label>
-          <label>Lead Stage
-            <select name="leadStage" class="input-field" required>
-              <option value="">Select</option>
-              <option value="hot">Hot</option>
-              <option value="warm">Warm</option>
-              <option value="cold">Cold</option>
-              <option value="ni">NI</option>
-              <option value="nre">NRE</option>
-              <option value="junk">Junk</option>
-            </select>
-          </label>
-          <label>Remarks<textarea name="remarks" class="input-field" style="min-height:48px;"></textarea></label>
-          <label>Follow-up<input type="date" name="followupDate" class="input-field"></label>
-          <button type="submit" class="add-btn">Add Lead</button>
-        </form>
-      </div>
-
-      <div id="myLeadsTab" style="display:none;">
-        <h3 style="font-weight:700;">My Leads</h3>
-        <div class="lead-list" id="myLeadsList">
-        </div>
-      </div>
-
-      <!-- --- SEM DASHBOARD --- -->
-      <div id="addAssignLeadTab" style="display:none;">
-        <h3 style="font-weight:700;">Add and Assign Lead</h3>
-        <form id="assignLeadForm">
-          <label>Event Name<input type="text" name="eventName" class="input-field" required></label>
-          <label>Organising Society<input type="text" name="organisingSociety" class="input-field" required></label>
-          <label>Contact Person<input type="text" name="contactPerson" class="input-field" required></label>
-          <label>Phone No.<input type="tel" name="phone" class="input-field" required></label>
-          <label>Email<input type="email" name="email" class="input-field" required></label>
-          <label>Lead Stage
-            <select name="leadStage" class="input-field" required>
-              <option value="">Select</option>
-              <option value="hot">Hot</option>
-              <option value="warm">Warm</option>
-              <option value="cold">Cold</option>
-              <option value="ni">NI</option>
-              <option value="nre">NRE</option>
-              <option value="junk">Junk</option>
-            </select>
-          </label>
-          <label>Remarks<textarea name="remarks" class="input-field"></textarea></label>
-          <label>Follow-up<input type="date" name="followupDate" class="input-field"></label>
-          <label>Assign To
-            <select name="assignTo" id="assignTo" class="input-field" required>
-              <!-- Filled by JS, exclude 'sem' and 'developer' -->
-            </select>
-          </label>
-          <button type="submit" class="add-btn">Add & Assign Lead</button>
-        </form>
-      </div>
-
-      <div id="allLeadsTab" style="display:none;">
-        <h3 style="font-weight:700;">All Leads</h3>
-        <div>
-          <input type="text" id="searchLeadAll" class="input-field" placeholder="Search by Name, Email, Company" />
-          <select id="filterUser" class="input-field" style="margin-top:8px;">
-            <option value="">All Users</option>
-          </select>
-          <input type="date" id="filterDate" class="input-field" style="margin-top:8px;">
-        </div>
-        <div class="lead-list" id="allLeadsList"></div>
-      </div>
-
-      <div id="reportTab" style="display:none;">
-        <h3 style="font-weight:700;">Report</h3>
-        <div>
-          <input type="date" id="reportDate" class="input-field" style="width:180px;" />
-        </div>
-        <table style="width:100%;margin-top:22px;border-collapse:separate;">
-          <thead>
-            <tr style="background:rgba(255,255,255,0.52); font-size:1.07rem;">
-              <th>User</th>
-              <th>Leads Registered</th>
-              <th>Follow-ups</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody id="reportTableBody"></tbody>
-        </table>
-      </div>
-
-      <!-- --- SUPER ADMIN PANEL --- -->
-      <div id="superAdminTab" style="display:none;">
-        <h2 style="font-weight:700;">Super Admin Panel</h2>
-        <!-- full config fields/user mgmt here -->
-        <p>Super admin can edit: user credentials, passwords, tab names, popups, and all website content from this section.</p>
-        <!-- Implement advanced fields with JS as per requirements -->
-      </div>
+    <div class="dashboard">
+      <div class="tab-bar" id="tab-bar"></div>
+      <div class="tab-content glass" id="tab-content"></div>
     </div>
   </div>
-
-  <!-- --- JS Logic to Show/Hide Views + Animations --- -->
   <script>
-    // Replace with your own image
-    // document.body.style.backgroundImage = 'url("your-high-contrast-blur-image.jpg")';
-    // Demo User Data
-    const USERS = [
-      {username:'sushant', pw:'sush@123', role:'user'},
-      {username:'gaurav', pw:'gaurav@123', role:'user'},
-      {username:'yash',   pw:'yash@123', role:'user'},
-      {username:'shikha', pw:'shikha@123', role:'user'},
-      {username:'tripti', pw:'tripti@123', role:'user'},
-      {username:'anshi',  pw:'anshi@123', role:'user'},
-      {username:'sem',    pw:'semops@123', role:'sem'},
-      {username:'developer', pw:'dev041228', role:'developer'}
+    /* --- Data (in-memory for demo only) --- */
+    const users = [
+      {username:"sushant", password:"sush@123", role:"user"},
+      {username:"gaurav", password:"gaurav@123", role:"user"},
+      {username:"yash", password:"yash@123", role:"user"},
+      {username:"shikha", password:"shikha@123", role:"user"},
+      {username:"tripti", password:"tripti@123", role:"user"},
+      {username:"anshi", password:"anshi@123", role:"user"},
+      {username:"sem", password:"semops@123", role:"sem"},
+      {username:"developer", password:"dev041228", role:"developer"},
     ];
-
-    let CURRENT_USER = null;
-
-    // --- PAGE INIT ---
-    function hideAllTabs() {
-      ['userTab', 'addLeadTab', 'myLeadsTab', 'addAssignLeadTab',
-      'allLeadsTab', 'reportTab', 'superAdminTab']
-      .forEach(id=>document.getElementById(id).style.display='none');
-      ['tabUser','tabAddLead','tabMyLeads','tabAddAssignLead',
-      'tabAllLeads','tabReport','tabSuperAdmin']
-      .forEach(id=>document.getElementById(id).style.display='none');
+    let leads = [];
+    let followups = [];
+    let session_user = null;
+    /* --- Helper Functions --- */
+    function showPopup(msg) {
+      const popup = document.getElementById('popup');
+      popup.style.display = '';
+      document.getElementById('popup-content').textContent = msg;
+      setTimeout(()=>{ popup.style.display='none'; }, 1000);
     }
-    function logout(){
-      CURRENT_USER = null;
-      document.getElementById('loginPage').style.display='block';
-      document.getElementById('userNameBadge').innerText='';
-      hideAllTabs();
-      localStorage.clear();
+    function formatDateIST(date) {
+      const d = new Date(date);
+      return d.toLocaleString('en-IN', {timeZone:'Asia/Kolkata'});
     }
-    function showUserTabs(role){
-      const tabs = {
-        'user':['tabUser','tabAddLead','tabMyLeads'],
-        'sem':['tabAddAssignLead','tabAllLeads','tabReport'],
-        'developer':['tabAddAssignLead','tabAllLeads','tabReport','tabSuperAdmin']
-      };
-      if(!tabs[role]) return;
-      tabs[role].forEach(id=>{
-        document.getElementById(id).style.display='block';
-        document.getElementById(id.replace('tab','')+'Tab').style.display='none';
-      });
-      // Show first available by default
-      changeTab((tabs[role][0]||'').replace('tab','')+'Tab');
-    }
-    function changeTab(tabId){
-      ['userTab', 'addLeadTab', 'myLeadsTab', 'addAssignLeadTab',
-      'allLeadsTab', 'reportTab', 'superAdminTab']
-      .forEach(id=>{
-        document.getElementById(id).style.display = (id === tabId ? 'block':'none');
-        const tabBtn = document.getElementById('tab'+id.charAt(0).toUpperCase()+id.slice(1,-3));
-        if(tabBtn) tabBtn.classList.toggle('active-tab', id===tabId);
-      });
-    }
-    // --- LOGIN FORM HANDLING ---
-    document.getElementById('loginForm').onsubmit = function(e){
+    function generateId() { return Math.random().toString(36).substr(2,9) + Date.now(); }
+    /* --- Auth and Routing --- */
+    function login(e) {
       e.preventDefault();
       const uname = document.getElementById('username').value.trim().toLowerCase();
-      const pw = document.getElementById('password').value;
-      const user = USERS.find(u=>u.username===uname && u.pw===pw);
-      if(user){
-        CURRENT_USER = user;
-        document.getElementById('loginPage').style.display='none';
-        document.getElementById('userNameBadge').innerText = uname.charAt(0).toUpperCase()+uname.slice(1);
-        showUserTabs(user.role);
-        showWelcomePopup("Welcome, " + uname.charAt(0).toUpperCase()+uname.slice(1) + "!");
-      } else {
-        showWelcomePopup("Login Failed!", true);
+      const pwd = document.getElementById('password').value;
+      const user = users.find(u=>u.username===uname && u.password===pwd);
+      if (!user) {
+        showPopup("Incorrect username or password");
+        return;
       }
-      return false;
+      session_user = {...user};
+      showPopup(`Welcome, ${capitalize(session_user.username)}!`);
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('main-app').style.display='';
+      renderDashboard();
     }
-    document.getElementById('logoutBtn').onclick = logout;
-
-    function showWelcomePopup(msg, isError){
-      const p = document.getElementById('welcomePopup');
-      p.innerText = msg;
-      p.style.background = isError?'#ff3e6eeb':'rgba(60,186,255,0.32)';
-      p.style.color = isError?'#fff':'#034574';
-      p.classList.add('active');
-      setTimeout(()=>{p.classList.remove('active')},1000);
+    function logout() {
+      session_user=null;
+      document.getElementById('main-app').style.display='none';
+      document.getElementById('login-screen').style.display='';
+      document.getElementById('username').value='';
+      document.getElementById('password').value='';
+    }
+    function capitalize(str) { return str.slice(0,1).toUpperCase() + str.slice(1); }
+    /* --- Dashboard Per Role --- */
+    function renderDashboard() {
+      document.getElementById('user-label').innerText = capitalize(session_user.username);
+      let tabs = [];
+      if (session_user.role==='user') {
+        tabs = [
+          {label: "User", fn: renderUserTab},
+          {label: "Add Lead", fn: renderAddLeadTab},
+          {label: "My Leads", fn: renderMyLeadsTab},
+        ];
+      } else if (session_user.role==='sem') {
+        tabs = [
+          {label: "Add & Assign Lead", fn: renderSemAddAssignLead},
+          {label: "All Leads", fn: renderSemAllLeads},
+          {label: "Report", fn: renderSemReport},
+        ];
+      } else if (session_user.role==='developer') {
+        tabs = [
+          {label: "Admin — Users", fn: renderDevUsers},
+          {label: "Admin — Leads", fn: renderSemAllLeads},
+          {label: "Admin — Report", fn: renderSemReport},
+        ];
+      }
+      /* Render UI Tabs */
+      const tabbar = document.getElementById('tab-bar');
+      tabbar.innerHTML = '';
+      tabs.forEach((tab, i) => {
+        let div = document.createElement('div');
+        div.className = 'tab';
+        div.textContent = tab.label;
+        div.onclick = () => { selectTab(i); };
+        if(i===0) div.classList.add('active');
+        tabbar.appendChild(div);
+      });
+      window.__currTabs = tabs;
+      selectTab(0);
+    }
+    function selectTab(idx) {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach((tab, i) => tab.classList.toggle('active', i===idx));
+      document.getElementById('tab-content').innerHTML = '';
+      setTimeout(()=>{ window.__currTabs[idx].fn(); }, 100);
+    }
+    /* ----- User role tabs ----- */
+    function renderUserTab() {
+      const userLeads = leads.filter(l=>l.assignedTo===session_user.username);
+      const today = new Date().toISOString().substring(0,10);
+      const followupDone = followups.filter(f=>f.user===session_user.username && f.date.split('T')[0]===today).length;
+      const overdue = followups.filter(f=>f.user===session_user.username && f.status!=='done' && new Date(f.date)<new Date());
+      const reminders = followups.filter(f=>f.user===session_user.username && f.status!=='done' && f.date.split('T')[0]===today);
+      document.getElementById('tab-content').innerHTML = `
+        <div class="card">
+          <div class="section-title">User Overview</div>
+          <div>Name: <b>${capitalize(session_user.username)}</b></div>
+          <div>Leads added: <b>${userLeads.length}</b></div>
+          <div>Follow-up done today: <b>${followupDone}</b></div>
+          <div>Overdue Follow-ups:</div>
+          <ul>${overdue.map(f=>`<li>${f.leadEventName} &mdash; ${formatDateIST(f.date)}</li>`).join('')||'<li>(none)</li>'}</ul>
+          <div>Follow-up reminders for today:</div>
+          <ul>${reminders.map(f=>`<li>${f.leadEventName} &mdash; ${formatDateIST(f.date)}</li>`).join('')||'<li>(none)</li>'}</ul>
+        </div>
+      `;
+    }
+    function renderAddLeadTab() {
+      const fields = `
+        <form class="lead-form" onsubmit="addLead(event)">
+          <label>Event Name <input required name="eventName"></label>
+          <label>Organising Society <input required name="orgSociety"></label>
+          <label>Contact Person <input required name="contactPerson"></label>
+          <label>Phone No. <input required name="phone" maxlength="15"></label>
+          <label>Email <input type="email" required name="email"></label>
+          <label>Lead Stage
+            <div class="lead-stage">
+              ${["hot","wrm","cld","ni","nre","junk"].map(lv=>
+                `<label><input type="radio" name="leadStage" value="${lv}" required><span>${lv.toUpperCase()}</span></label>`
+              ).join('')}
+            </div>
+          </label>
+          <label>Remarks <textarea name="remarks"></textarea></label>
+          <label>Followup date/time <input type="datetime-local" required name="followup"></label>
+          <button class="glass-btn" type="submit">Add Lead</button>
+        </form>
+      `;
+      document.getElementById('tab-content').innerHTML = `<div class="card">${fields}</div>`;
+    }
+    function addLead(e) {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const leadId = generateId();
+      let lead = {
+        id:leadId,
+        eventName: fd.get("eventName"),
+        orgSociety: fd.get("orgSociety"),
+        contactPerson: fd.get("contactPerson"),
+        phone: fd.get("phone"),
+        email: fd.get("email"),
+        leadStage: fd.get("leadStage"),
+        remarks: fd.get("remarks"),
+        assignedTo: session_user.username,
+        dateAdded: new Date().toISOString(),
+      };
+      leads.push(lead);
+      // Add follow up for this lead
+      followups.push({id: generateId(), user: session_user.username, leadId, leadEventName:lead.eventName, date: fd.get("followup"), status:"pending"});
+      showPopup("Lead Added!");
+      renderDashboard();
+    }
+    function renderMyLeadsTab() {
+      const userLeads = leads.filter(l=>l.assignedTo===session_user.username);
+      let html = `
+        <div class="card">
+          <div class="section-title">My Leads</div>
+          <table class="leads-table">
+          <tr>
+            <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th><th>Email</th>
+            <th>Lead Stage</th><th>Remarks</th><th>Date Added</th><th>Add Follow-up</th>
+          </tr>
+          ${userLeads.map(l=>
+            `<tr>
+              <td contenteditable="true" onblur="editLead('${l.id}','eventName',this.innerText)">${l.eventName}</td>
+              <td contenteditable="true" onblur="editLead('${l.id}','orgSociety',this.innerText)">${l.orgSociety}</td>
+              <td contenteditable="true" onblur="editLead('${l.id}','contactPerson',this.innerText)">${l.contactPerson}</td>
+              <td contenteditable="true" onblur="editLead('${l.id}','phone',this.innerText)">${l.phone}</td>
+              <td contenteditable="true" onblur="editLead('${l.id}','email',this.innerText)">${l.email}</td>
+              <td>
+                <select onchange="editLead('${l.id}','leadStage',this.value)">
+                  ${["hot","wrm","cld","ni","nre","junk"].map(stage=>
+                    `<option value="${stage}"${l.leadStage===stage?' selected':''}>${stage.toUpperCase()}</option>`
+                  ).join('')}
+                </select>
+              </td>
+              <td contenteditable="true" onblur="editLead('${l.id}','remarks',this.innerText)">${l.remarks||''}</td>
+              <td>${formatDateIST(l.dateAdded)}</td>
+              <td><button class="followup-btn" onclick="addFollowup('${l.id}','${l.eventName}')">+</button></td>
+            </tr>`
+          ).join('')}
+          </table>
+        </div>
+      `;
+      document.getElementById('tab-content').innerHTML = html;
+    }
+    function editLead(leadId, field, val) {
+      let lead=leads.find(l=>l.id===leadId); if(!lead) return;
+      if(field==="leadStage") lead[field]=val;
+      else lead[field] = val.trim();
+      showPopup("Updated!");
+    }
+    function addFollowup(leadId,eventName) {
+      const dt = prompt("Enter follow-up datetime (YYYY-MM-DDTHH:MM):", (new Date().toISOString().slice(0,16)));
+      if(dt && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dt)) {
+        followups.push({id:generateId(), user:session_user.username, leadId, leadEventName:eventName, date:dt, status:"pending"});
+        showPopup("Follow-up Added!");
+        renderMyLeadsTab();
+      }
+    }
+    /* -------- SEM Tabs --------- */
+    function renderSemAddAssignLead() {
+      let userOptions = users.filter(u=>u.role==="user").map(u=>`<option value="${u.username}">${capitalize(u.username)}</option>`).join('');
+      const fields = `
+        <form class="lead-form" onsubmit="semAddLead(event)">
+          <label>Event Name <input required name="eventName"></label>
+          <label>Organising Society <input required name="orgSociety"></label>
+          <label>Contact Person <input required name="contactPerson"></label>
+          <label>Phone No. <input required name="phone" maxlength="15"></label>
+          <label>Email <input type="email" required name="email"></label>
+          <label>Lead Stage
+            <div class="lead-stage">
+              ${["hot","wrm","cld","ni","nre","junk"].map(lv=>
+                `<label><input type="radio" name="leadStage" value="${lv}" required><span>${lv.toUpperCase()}</span></label>`
+              ).join('')}
+            </div>
+          </label>
+          <label>Remarks <textarea name="remarks"></textarea></label>
+          <label>Followup date/time <input type="datetime-local" required name="followup"></label>
+          <label>Assign to
+            <select required name="assignedTo">${userOptions}</select>
+          </label>
+          <button class="glass-btn" type="submit">Add & Assign Lead</button>
+        </form>
+      `;
+      document.getElementById('tab-content').innerHTML = `<div class="card">${fields}</div>`;
+    }
+    function semAddLead(e) {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const leadId = generateId();
+      let lead = {
+        id:leadId,
+        eventName: fd.get("eventName"),
+        orgSociety: fd.get("orgSociety"),
+        contactPerson: fd.get("contactPerson"),
+        phone: fd.get("phone"),
+        email: fd.get("email"),
+        leadStage: fd.get("leadStage"),
+        remarks: fd.get("remarks"),
+        assignedTo: fd.get('assignedTo'),
+        dateAdded: new Date().toISOString(),
+      };
+      leads.push(lead);
+      followups.push({id: generateId(), user: fd.get('assignedTo'), leadId, leadEventName:lead.eventName, date: fd.get("followup"), status:"pending"});
+      showPopup("Lead Added & Assigned!");
+      renderDashboard();
     }
 
-    // DEMO: Populate assign to for SEM panel (real data via JS/back)
-    document.getElementById('assignTo').innerHTML =
-      USERS.filter(u=>u.role==='user').map(u=>
-        `<option value="${u.username}">${u.username.charAt(0).toUpperCase()+u.username.slice(1)}</option>`
-      ).join('');
-    // DEMO: add actual leads/followup/fill logic with JS+storage!
+    function renderSemAllLeads() {
+      let usersList = ["all"].concat(users.filter(u=>u.role==="user").map(u=>u.username));
+      let filterUserOptions = usersList.map(u=>`<option value="${u}">${capitalize(u)}</option>`).join('');
+      let today = (new Date()).toISOString().substring(0,10);
+      let html = `
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;">
+            <div class="section-title">All Leads</div>
+            <select id="filter-user" class="glass" style="padding:0.6rem;">${filterUserOptions}</select>
+            <input id="filter-date" type="date" class="glass" style="padding:0.6rem;">
+            <input id="search-lead" class="search-lead" placeholder="Search lead...">
+            <label class="toggle-today">
+              <input type="checkbox" id="today-fl-toggle">Today's Follow-up
+            </label>
+            <button class="glass-btn" onclick="applyLeadFilter()">Filter</button>
+          </div>
+          <div style="overflow-x:auto;">
+          <table class="leads-table" id="all-leads-table">
+            <tr>
+              <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th>
+              <th>Email</th><th>Lead Stage</th><th>Remarks</th>
+              <th>Assigned To</th><th>Date Added</th>
+              <th>Edit</th>
+            </tr>
+          </table>
+          </div>
+        </div>
+      `;
+      document.getElementById('tab-content').innerHTML = html;
+      // initial render
+      applyLeadFilter();
+      // search reactively
+      document.getElementById('search-lead').addEventListener('input',applyLeadFilter);
+      document.getElementById('today-fl-toggle').addEventListener('change',applyLeadFilter);
+    }
+    function applyLeadFilter() {
+      let uname=document.getElementById('filter-user').value;
+      let dt=document.getElementById('filter-date').value;
+      let q = (document.getElementById('search-lead')||{value:""}).value.trim().toLowerCase();
+      let onlyToday = (document.getElementById('today-fl-toggle')||{}).checked;
+      // Filter
+      let data = leads;
+      if(uname && uname!=='all') data = data.filter(l=>l.assignedTo===uname);
+      if(dt) data = data.filter(l=>l.dateAdded.substring(0,10)===dt);
+      if(q) data = data.filter(l=>
+        (l.eventName+l.contactPerson+l.phone+l.email+l.orgSociety+l.remarks).toLowerCase().includes(q)
+      );
+      if(onlyToday) {
+        let today=(new Date()).toISOString().substring(0,10);
+        let ids = new Set(followups.filter(f=>f.date.split('T')[0]===today).map(f=>f.leadId));
+        data = data.filter(l=>ids.has(l.id));
+      }
+      let tb = document.getElementById('all-leads-table');
+      tb.innerHTML = `<tr>
+        <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th>
+        <th>Email</th><th>Lead Stage</th><th>Remarks</th>
+        <th>Assigned To</th><th>Date Added</th>
+        <th>Edit</th>
+      </tr>` + 
+        data.map(l=>{
+          let editable = (session_user.username===l.assignedTo);
+          return `<tr>
+            <td${editable?' contenteditable="true"':''} onblur="editLead('${l.id}','eventName',this.innerText)">${l.eventName}</td>
+            <td${editable?' contenteditable="true"':''} onblur="editLead('${l.id}','orgSociety',this.innerText)">${l.orgSociety}</td>
+            <td${editable?' contenteditable="true"':''} onblur="editLead('${l.id}','contactPerson',this.innerText)">${l.contactPerson}</td>
+            <td${editable?' contenteditable="true"':''} onblur="editLead('${l.id}','phone',this.innerText)">${l.phone}</td>
+            <td${editable?' contenteditable="true"':''} onblur="editLead('${l.id}','email',this.innerText)">${l.email}</td>
+            <td>
+            ${editable?`<select onchange="editLead('${l.id}','leadStage',this.value)">
+              ${["hot","wrm","cld","ni","nre","junk"].map(stage=>
+                `<option value="${stage}"${l.leadStage===stage?' selected':''}>${stage.toUpperCase()}</option>`
+              ).join('')}
+            </select>`:l.leadStage.toUpperCase()}
+            </td>
+            <td${editable?' contenteditable="true"':''} onblur="editLead('${l.id}','remarks',this.innerText)">${l.remarks||''}</td>
+            <td>${capitalize(l.assignedTo)}</td>
+            <td>${formatDateIST(l.dateAdded)}</td>
+            <td>${editable?'<span style="color:#b04ae4;font-size:1.14em;">&#9998;</span>':''}</td>
+          </tr>`
+        }
+        ).join('');
+    }
+    function renderSemReport() {
+      let usersList = users.filter(u=>u.role==="user");
+      const today = new Date().toISOString().substring(0,10);
+      let html = `
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:1.5rem;">
+            <div class="section-title">Report (per user, for today)</div>
+            <input id="report-date" type="date" class="glass" style="padding:0.6rem;" value="${today}">
+            <button class="glass-btn" onclick="applyReportFilter()">Filter</button>
+          </div>
+          <table class="report-table" id="report-table">
+          <tr>
+            <th>User</th>
+            <th>No. of Leads</th><th>Follow-ups</th>
+          </tr>
+          ${usersList.map(u=>{
+            const leadsToday = leads.filter(l=>l.assignedTo===u.username && l.dateAdded.substring(0,10)===today).length;
+            const flToday = followups.filter(f=>f.user===u.username && f.date.split('T')[0]===today).length;
+            return `<tr>
+              <td>${capitalize(u.username)}</td>
+              <td>${leadsToday}</td>
+              <td>${flToday}</td>
+            </tr>`;
+          }).join('')}
+          </table>
+        </div>
+      `;
+      document.getElementById('tab-content').innerHTML = html;
+    }
+    function applyReportFilter() {
+      let dt = document.getElementById('report-date').value;
+      let usersList = users.filter(u=>u.role==="user");
+      let tb = document.getElementById('report-table');
+      tb.innerHTML = `<tr>
+        <th>User</th>
+        <th>No. of Leads</th><th>Follow-ups</th>
+      </tr>` + 
+      usersList.map(u=>{
+        const leadsToday = leads.filter(l=>l.assignedTo===u.username && l.dateAdded.substring(0,10)===dt).length;
+        const flToday = followups.filter(f=>f.user===u.username && f.date.split('T')[0]===dt).length;
+        return `<tr>
+          <td>${capitalize(u.username)}</td>
+          <td>${leadsToday}</td>
+          <td>${flToday}</td>
+        </tr>`;
+      }).join('');
+    }
+    /* --- Developer Admin --- */
+    function renderDevUsers() {
+      let html = `
+        <div class="card">
+          <div class="section-title">Admin: User Management</div>
+          <table class="report-table">
+          <tr><th>User</th><th>Role</th><th>Password (reset)</th></tr>
+          ${users.map((u,i)=>`
+            <tr>
+              <td><input style="width:120px" value="${u.username}" onchange="devSetUsername(${i},this.value)"></td>
+              <td>${u.role}</td>
+              <td><input style="width:120px" type="password" value="${u.password}" onchange="devSetPassword(${i},this.value)"></td>
+            </tr>`).join('')}
+          </table>
+        </div>
+      `;
+      document.getElementById('tab-content').innerHTML = html;
+    }
+    function devSetUsername(idx,val) { users[idx].username = val.trim().toLowerCase(); showPopup("Username changed."); }
+    function devSetPassword(idx,val) { users[idx].password = val; showPopup("Password changed."); }
+    document.addEventListener('DOMContentLoaded',()=>{
+      document.getElementById('main-app').style.display='none';
+    });
   </script>
 </body>
 </html>
