@@ -3,680 +3,460 @@
 <head>
   <meta charset="UTF-8">
   <title>CRM PORTAL SEM</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
-    /* ------- Liquid Glass UI Base Styles ------- */
+    /* Blurred Glass Background (based on 2nd image reference) */
     body {
+      min-height: 100vh;
       margin: 0;
       font-family: 'SF Pro Display', 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #ece9f7 0%, #e3f1fa 100%);
-      min-height: 100vh;
-      overflow-x: hidden;
+      position: relative;
+      overflow: hidden;
+      background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?fit=crop&w=1200&q=80'), linear-gradient(112deg, #ffddb4 0%, #fcd5eb 45%, #ffe7cd 100%);
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
     }
+    .glass-bg {
+      position: fixed;
+      z-index: 0;
+      inset: 0;
+      /* strong blur for translucent glass */
+      backdrop-filter: blur(32px) saturate(110%);
+      -webkit-backdrop-filter: blur(32px) saturate(110%);
+      background: rgba(238, 178, 210, 0.36);
+      pointer-events: none;
+    }
+
     .glass-container {
-      background: rgba(255,255,255,0.22);
-      backdrop-filter: blur(22px) saturate(130%);
-      box-shadow: 0 4px 36px 0 rgba(72, 104, 224, 0.14),
-                  0 1.5px 4px 0 rgba(153,153,153,0.11) inset;
+      box-sizing: border-box;
+      max-width: 520px;
+      margin: 60px auto 0 auto;
       border-radius: 36px;
-      border: 0.8px solid rgba(180,200,255,0.14);
-      margin: 30px auto;
-      padding: 40px 56px;
-      max-width: 550px;
-      animation: fadeInUp 1.3s cubic-bezier(0.22, 1, 0.36, 1);
+      background: rgba(255,255,255,0.35);
+      border: 1.8px solid rgba(255,255,255,0.19);
+      box-shadow: 0 8px 48px 0 rgba(84,98,255,0.10),
+                  0 2px 8px 0 rgba(200,200,220,0.12) inset;
+      /* More blur than background for strong glass effect */
+      backdrop-filter: blur(60px) saturate(140%);
+      -webkit-backdrop-filter: blur(60px) saturate(140%);
+      position: relative;
+      z-index: 2;
+      padding: 46px 36px 36px 36px;
+      animation: fadeUpGlass 1.2s cubic-bezier(.3,1.34,.42,1);
     }
-    @keyframes fadeInUp {
-      0% { opacity: 0; transform: translateY(48px);}
+    @keyframes fadeUpGlass {
+      0% { opacity: 0; transform: translateY(64px);}
       100% { opacity:1; transform: translateY(0);}
     }
-    .glass-glow:hover,
-    .glass-glow:focus,
-    .nav-tab.selected {
-      box-shadow: 0 0 12px #94eaff, 0 0px 32px #73b0f9;
-      border-color: rgba(180,200,255,0.29);
-      transition: box-shadow 0.24s cubic-bezier(.71,1.77,.74,1.21);
-    }
-    h1 {
-      font-size: 2.1rem;
-      text-align: center;
-      background: linear-gradient(120deg, #2e7bf7 60%, #62ffe4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 32px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-    }
-    /* --- Login Form UI --- */
-    .form-box {
+
+    .side-menu {
+      background: rgba(255,255,255,0.22);
+      box-shadow: 0 8px 56px 0 rgba(118,76,246,0.12), 0 1.5px 4px 0 rgba(210,210,210,0.13) inset;
+      border-radius: 36px 0 0 36px;
+      border-right: 1.5px solid rgba(255,255,255,0.19);
+      padding: 36px 0 36px 0;
+      width: 170px;
+      position: absolute;
+      left: -180px;
+      top: 20px;
+      bottom: 20px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      align-items: center;
+      gap: 30px;
+      transition: left 0.4s;
+      z-index: 3;
     }
-    .form-box input, .form-box select, .form-box textarea {
-      background: rgba(255,255,255,0.42);
-      padding: 14px 16px;
-      margin-bottom: 10px;
-      border-radius: 16px;
+    .side-menu.open {
+      left: 0;
+    }
+    .side-menu img {
+      border-radius: 50%;
+      width: 54px;
+      margin-bottom: 0;
+    }
+    .side-menu .sm-username {
+      margin-top: 9px;
+      font-size: 1rem;
+      color: #5b25b9;
+      font-weight: bold;
+      margin-bottom: 13px;
+    }
+    .side-menu button, .side-menu .sm-link {
+      background: rgba(252,246,255,0.44);
       border: none;
       outline: none;
-      font-size: 1.04rem;
-      box-shadow: 0 2px 12px 0 rgba(66, 78, 104, 0.09) inset;
-      transition: box-shadow 0.2s, background 0.2s;
-    }
-    .form-box input:focus, .form-box textarea:focus, .form-box select:focus {
-      box-shadow: 0 0 0 2px #acf5fa;
-      background: rgba(242,252,255,0.66);
-    }
-    .primary-btn {
-      background: linear-gradient(90deg, #45e1f2 16%, #2980fa 100%);
-      color: #fff;
-      font-weight: bold;
-      padding: 12px 3vw;
       border-radius: 18px;
-      border: 0;
+      padding: 12px 0;
+      margin-bottom: 10px;
+      width: 127px;
+      font-weight: 600;
+      color: #843cff;
+      box-shadow: 0 2px 9px #dbcdff55;
+      font-size: 1.03rem;
       cursor: pointer;
-      font-size: 1.08rem;
-      box-shadow: 0 2px 12px 0 #b3effd96;
-      transition: background 0.18s, box-shadow 0.17s;
+      transition: box-shadow .19s, background .21s;
     }
-    .primary-btn:hover {
-      background: linear-gradient(92deg,#1f92fc 40%,#22ddd7 90%);
-      box-shadow: 0 4px 16px #75c8fada;
+    .side-menu button:hover, .side-menu .sm-link.selected {
+      background: rgba(185,137,239,0.54);
+      color: #fff;
+      box-shadow: 0 0 16px #e29fffbb;
     }
+    .side-menu .sm-link {
+      text-align: center;
+      display: block;
+    }
+    .menu-toggle {
+      position: absolute;
+      left: 17px; top: 40px;
+      background: rgba(250, 220, 255, 0.37);
+      border-radius: 35px;
+      border: 0;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 5;
+      box-shadow: 0 0 12px #e484f4bb;
+      transition: background .18s;
+    }
+    .menu-toggle:hover {
+      background: rgba(180,120,254,0.34);
+    }
+    /* Top Right User and Logout Button */
+    .top-bar {
+      display: flex; justify-content: flex-end; align-items: center;
+      gap: 20px;
+      margin-bottom: 12px;
+    }
+    .user-chip {
+      background: rgba(132,63,255,0.13);
+      padding: 8px 22px 8px 18px;
+      border-radius: 17px 0 0 17px;
+      color: #843cff;
+      font-weight: bold;
+      letter-spacing: 0.7px;
+      font-size: 1.06rem;
+      box-shadow: 0 2px 10px #c1a8e945;
+    }
+    .logout-btn {
+      background: rgba(245, 115, 115, 0.20);
+      color: #d44e4e;
+      border: none;
+      border-radius: 0 16px 16px 0;
+      font-weight: 500;
+      font-size: 1rem;
+      padding: 8px 22px;
+      margin-left: -7px;
+      cursor: pointer;
+      box-shadow: 0 2px 10px #f8c5c545;
+      transition: background 0.16s;
+    }
+    .logout-btn:hover { background: #ffeaea; color: #d40000; }
 
     /* Welcome Popup */
     .welcome-popup {
-      position: fixed; left:50%; top:20%; transform:translateX(-50%);
+      position: fixed; left:50%; top:17%; transform:translateX(-50%);
       min-width: 260px;
-      background: rgba(255,255,255,0.69);
-      backdrop-filter: blur(24px);
-      border-radius: 22px; box-shadow: 0 4px 20px #0404061c;
-      padding: 36px 42px;
-      font-size: 1.24rem;
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(30px);
+      border-radius: 22px; box-shadow: 0 6px 28px #c16cff43;
+      padding: 38px 44px;
+      font-size: 1.3rem;
       font-weight: 600;
-      color:#2991ef;
+      color:#9e28f8;
       text-align: center;
-      z-index: 888;
+      z-index: 28;
       pointer-events:none;
       opacity: 0;
       transition: opacity 0.65s;
+      animation: popAnim 1s cubic-bezier(.31,.97,.78,1.12);
     }
-    .welcome-popup.show {
-      opacity:1;
-      pointer-events:all;
-      animation: popAnim 1.15s cubic-bezier(.31,.97,.78,1.12);
-    }
+    .welcome-popup.show { opacity:1; pointer-events:all; }
     @keyframes popAnim {
-      0% {opacity:0; transform: translate(-50%,40%) scale(0.75);}
-      45% {opacity:1; transform: translate(-50%,0) scale(1.1);}
+      0% {opacity:0; transform: translate(-50%,40%) scale(0.74);}
+      55% {opacity:1; transform: translate(-50%,0) scale(1.11);}
       100% {opacity:1; transform: translate(-50%,0) scale(1);}
     }
 
-    /* Tab navigation & Panels */
-    .tab-nav {
+    /* Search Bar / Tabs Block */
+    .searchbar {
+      width: 91%;
+      margin: 0 auto 13px auto;
+      display:flex; 
+      align-items:center;
+      gap: 11px;
+    }
+    .searchbar input {
+      flex:1;
+      border:none;
+      padding:12px 18px;
+      font-size:1.1rem;
+      border-radius:19px;
+      background:rgba(255,255,255,0.47);
+      box-shadow:0 2px 10px #d7bafc48 inset;
+      color:#7818e2;
+      margin-right:12px;
+      outline: none;
+      transition: box-shadow .23s;
+    }
+    .searchbar input:focus {
+      box-shadow:0 0 19px #ffd0fd99;
+    }
+    .tab-panel {
+      background: rgba(255,255,255,0.57);
+      border-radius: 30px;
+      box-shadow: 0 2.5px 12px #debcfd37, 0 1.5px 4px 0 #f2d5ff14 inset;
+      padding: 38px 15px 19px 17px;
+      margin-top: 18px;
+      backdrop-filter: blur(70px) saturate(160%);
+    }
+    .tabs-header {
       display: flex;
-      gap: 22px;
-      margin-bottom: 30px;
-      justify-content: flex-start;
+      gap: 14px;
+      padding-left: 15px;
+      margin-bottom: 6px;
     }
-    .nav-tab {
-      background: rgba(225,253,255,0.46);
-      color:#1e66f1;
+    .tab-btn {
       border: none;
-      border-radius: 16px 16px 0 0;
-      padding: 10px 32px 12px 32px;
-      font-size: 1.08rem;
+      border-radius: 13px 13px 0 0;
+      background: rgba(215,187,252,0.4);
+      font-size: 1.09rem;
       font-weight: 600;
-      margin-right:0;
+      letter-spacing: 0.2px;
+      padding: 12px 33px 13px 33px;
+      color: #893cff;
+      margin-bottom: -5px;
       cursor: pointer;
-      margin-bottom:-4px;
-      position:relative;
-      z-index:2;
-      transition: box-shadow 0.25s, color 0.12s;
+      transition: background .19s, color .21s, box-shadow .19s;
+      outline: none;
     }
-    .nav-tab.selected {
-      background: #fff;
-      color: #0a2373;
+    .tab-btn.selected, .tab-btn:hover {
+      background: rgba(249, 194, 255, 0.76);
+      color: #402097;
+      box-shadow: 0 6px 28px #e6b8ea46;
     }
-    .panel {
-      background: rgba(253,255,255,0.88);
-      border-radius: 0 0 24px 24px;
-      box-shadow: 0 1.5px 4px 0 #a9d3fa1e;
-      padding: 34px 19px 21px 13px;
-      animation: fadeInUp 1.1s cubic-bezier(.52,1.27,.44,1.22);
-      min-height:340px;
-    }
-    /* Header, Logout and User Display */
-    .header-bar {
-      width:100%; display:flex; justify-content:space-between; align-items:center;
-      padding-bottom:12px; margin-bottom:16px;
-    }
-    .user-name {
-      color:#1f8cff; font-weight:700; letter-spacing:1px; font-size: 1.1rem;
-      background:rgba(225,255,255,0.48);
-      border-radius: 14px;
-      padding:6px 14px;
-      box-shadow:0 4px 12px #aaf0fac2;
-    }
-    .logout-btn {
-      border:none;background:rgba(255,108,108,0.19); color:#f22; border-radius:13px;
-      letter-spacing:0.8px;font-size:1rem;font-weight:500;
-      margin-left:21px;padding:7px 18px;cursor:pointer;
-      transition: background 0.17s;
-    }
-    .logout-btn:hover {background:#ffd2d2;color:#b61e1e;}
 
-    /* --- Data Tables --- */
-    table {
-      width:97%;
-      border-collapse:collapse;
-      background:rgba(255,255,255,0.76);
-      margin: 14px auto 0 auto;
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 9px; background:rgba(210,182,252,0.15);}
+    ::-webkit-scrollbar-thumb { background:rgba(131,60,254,0.16); border-radius: 22px;}
+
+    /* Data Cards */
+    .game-card {
+      background:rgba(255,255,255,0.75);
+      border-radius:19px;
+      box-shadow:0 8px 22px #e8bcfb19, 0 2px 8px #cec1ef2e inset;
+      display:flex; align-items:center; gap:18px;
+      padding:19px 23px; margin-bottom:18px; 
+      animation: fadeInCard .8s;
+      backdrop-filter: blur(14px) saturate(130%);
+      transition: box-shadow .16s;
     }
-    th, td {
-      padding: 9px 15px;
-      border-bottom:1.5px solid #e6f0f8;
-      text-align: left;
-      font-size: 1.01rem;
+    .game-card:hover {
+      box-shadow:0 0px 24px #e065fa1c;
     }
-    th {
-      background: linear-gradient(87deg, #e8fafd 64%, #e9f2ff 100%);
-      color:#186eda;font-weight:600;letter-spacing:0.5px;
+    .gc-thumb {
+      width:60px;height:60px; border-radius:15px; 
+      box-shadow: 0 2px 6px #f8d2fc44;
+      object-fit:cover;
+      border: 2.5px solid #c8b0f9bb;
     }
-    tr:last-child td { border-bottom: none;}
-    /* Toggle/Field glow on hover */
-    input:hover, select:hover, textarea:hover, .glass-glow:focus {
-      box-shadow: 0 0 14px #85e5ff;
-      background:rgba(248,255,255,0.72);
+    .gc-info { flex: 1;}
+    .gc-title {font-weight:700; color:#7735f4;font-size:1.1rem;}
+    .gc-desc { color: #6449a6; font-size:0.94rem; margin-top:2px;}
+    .gc-progress-wrap {margin-top:7px;}
+    .gc-progress-bg {
+      height:13px;
+      width:85%;
+      border-radius:8px;
+      background:rgba(146,188,249,0.23);
+      overflow:hidden;
+      position:relative;
     }
-    /* Mobile responsiveness */
-    @media (max-width: 700px) {
-      .glass-container { padding: 8vw 4vw; max-width:97vw;}
-      .tab-nav { gap:8px;}
-      .nav-tab {padding:10px 10px;}
+    .gc-progress-bar {
+      position:absolute;
+      left:0;top:0;bottom:0;
+      background: linear-gradient(90deg,#c270f9,#68f5e4 100%);
+      height:13px; border-radius:8px;
+      z-index:1;
+      transition:width .55s cubic-bezier(.79,.01,.21,1.03);
+    }
+    .gc-progress-val { float:right; color:#ba48fa; font-weight:600;}
+    @keyframes fadeInCard { from{ opacity: 0; transform: translateY(40px);} to{ opacity:1; transform: translateY(0);} }
+
+    /* Responsive */
+    @media (max-width: 920px){
+      .glass-container { max-width: 100vw; padding: 6vw 3vw;}
+      .side-menu {display: none;}
+    }
+    @media (max-width: 600px){
+      .glass-container { padding:3vw 0vw 1vw 0vw; margin: 18vw 0 0 0; }
+      .tabs-header {gap: 7px;}
+      .tab-btn { padding: 7px 11px;}
+      .searchbar { width:96%; }
+      .game-card {flex-direction:column;align-items:flex-start;}
     }
   </style>
 </head>
 <body>
-  <div id="popup" class="welcome-popup"></div>
-  <div class="glass-container" id="main-container">
-    <h1>CRM PORTAL SEM</h1>
-    <div id="login-page">
-      <form class="form-box" id="login-form" autocomplete="off">
-        <input class="glass-glow" type="text" id="login-username" placeholder="User Name" required autofocus>
-        <input class="glass-glow" type="password" id="login-password" placeholder="Password" required>
-        <button class="primary-btn glass-glow" type="submit">Login</button>
+  <div class="glass-bg"></div>
+  <div class="glass-container" id="main-glass">
+    <div class="top-bar">
+      <span id="usernameBar" class="user-chip"></span>
+      <button class="logout-btn" style="display:none" id="logoutBtn">Logout</button>
+    </div>
+    <div id="loginPage">
+      <form id="loginForm" autocomplete="off">
+        <h1 style="text-align:center; font-size:2.2rem; background: linear-gradient(120deg, #6135b9 50%, #14f7d3 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">CRM PORTAL SEM</h1>
+        <input class="glass-glow" type="text" id="login-username" placeholder="User Name" required autofocus style="width:100%; margin-bottom:17px; padding:14px; font-size:1.07em;">
+        <input class="glass-glow" type="password" id="login-password" placeholder="Password" required style="width:100%; margin-bottom:25px; padding:14px; font-size:1.07em;">
+        <button class="tab-btn glass-glow" type="submit" style="width:100%;">Login</button>
       </form>
     </div>
-    <div id="app-page" style="display:none"></div>
+    <div id="mainPage" style="display:none"></div>
   </div>
+  <div id="popup" class="welcome-popup"></div>
+  <!-- Sample side bar for expansion if needed; hidden on mobile -->
+  <div class="side-menu" id="sideMenu">
+     <!-- Dynamically filled based on login -->
+  </div>
+  <button class="menu-toggle" id="menuToggle" style="display:none" onclick="toggleMenu()">
+    <svg width="32" height="32"><rect y="8" width="24" height="3" rx="2" fill="#c784fa"/><rect y="16" width="24" height="3" rx="2" fill="#c784fa"/><rect y="24" width="24" height="3" rx="2" fill="#c784fa"/></svg>
+  </button>
   <script>
-    // --- User/Role Data ---
-    const USERS = [
-      {username:'sushant', password:'sush@123', role:'user'},
-      {username:'gaurav', password:'gaurav@123', role:'user'},
-      {username:'yash', password:'yash@123', role:'user'},
-      {username:'shikha', password:'shikha@123', role:'user'},
-      {username:'tripti', password:'tripti@123', role:'user'},
-      {username:'anshi', password:'anshi@123', role:'user'},
-      {username:'SEM', password:'semops@123', role:'sem'},
-      {username:'developer', password:'dev041228', role:'developer'}
+    // --- Dummy Data to Simulate Game Cards (update for real app context) ---
+    const ACTIVE_GAMES = [
+      {
+        img: 'https://staticg.sportskeeda.com/editor/2022/09/568d8-16636716693311-1920.jpg',
+        title: 'Assassins Creed Valhalla',
+        desc: 'PS5 version',
+        progress: 60
+      },
+      {
+        img: 'https://i.pinimg.com/originals/0c/fd/80/0cfd8015324a803eb14e4ef1e7b334b4.jpg',
+        title: 'Spiderman',
+        desc: 'PS5 version',
+        progress: 20
+      },
+      {
+        img: 'https://gaming-cdn.com/images/products/8503/orig/sackboy-a-big-adventure-ps5-ps4-game-playstation-store-europe-cover.jpg',
+        title: 'Sack Boy - A Big Adventure',
+        desc: 'PS5 version',
+        progress: 90
+      }
     ];
-    const USERNAMES = USERS.map(u => u.username);
-
-    // --- Local Storage Data Handling ---
-    function getData(key)  { return JSON.parse(localStorage.getItem(key)||'[]'); }
-    function setData(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
-
-    // --- State ---
+    // --- Users ---
+    const USERS = [
+      {username:'sushant', password:'sush@123', role:'user', name:'Sushant'},
+      {username:'gaurav', password:'gaurav@123', role:'user', name:'Gaurav'},
+      {username:'yash', password:'yash@123', role:'user', name:'Yash'},
+      {username:'shikha', password:'shikha@123', role:'user', name:'Shikha'},
+      {username:'tripti', password:'tripti@123', role:'user', name:'Tripti'},
+      {username:'anshi', password:'anshi@123', role:'user', name:'Anshi'},
+      {username:'SEM', password:'semops@123', role:'sem', name:'SEM (Manager)'},
+      {username:'developer', password:'dev041228', role:'developer', name:'Developer'}
+    ];
     let currentUser = null;
-    let leadsDB = getData('leads');
-    let followupsDB = getData('followups');
 
-    // Welcome Popup Utility
+    // --- Login Logic ---
+    document.getElementById('loginForm').onsubmit = function(e){
+      e.preventDefault();
+      const uname = document.getElementById('login-username').value.trim();
+      const upass = document.getElementById('login-password').value.trim();
+      const found = USERS.find(u => u.username === uname && u.password === upass);
+      if(found){
+        currentUser = found;
+        document.getElementById('usernameBar').innerText = found.name || found.username;
+        showPopup('Welcome, ' + (found.name || found.username));
+        document.getElementById('loginPage').style.display='none';
+        document.getElementById('logoutBtn').style.display='';
+        setTimeout(renderMain, 800);
+      } else {
+        showPopup('Invalid login.');
+      }
+    };
+
+    document.getElementById('logoutBtn').onclick = function(){
+      currentUser = null;
+      document.getElementById('mainPage').style.display='none';
+      document.getElementById('usernameBar').innerText = '';
+      document.getElementById('loginPage').style.display='';
+      document.getElementById('logoutBtn').style.display='none';
+      document.getElementById('sideMenu').style.left = '-180px';
+    };
+
+    // --- Welcome Popup Utility ---
     function showPopup(msg) {
       const pop=document.getElementById('popup');
       pop.innerText=msg;
       pop.classList.add('show');
-      setTimeout(()=>pop.classList.remove('show'),1000);
+      setTimeout(()=>pop.classList.remove('show'),1050);
     }
 
-    // ---- Login Logic ----
-    document.getElementById('login-form').onsubmit = function(e) {
-      e.preventDefault();
-      const uname = document.getElementById('login-username').value.trim();
-      const upass = document.getElementById('login-password').value.trim();
-      const u = USERS.find(x => x.username === uname && x.password === upass);
-      if (u) {
-        currentUser = { ...u };
-        document.getElementById('login-page').style.display = 'none';
-        showPopup(`Welcome, ${uname}`);
-        setTimeout(loadMainApp, 950);
-      } else {
-        showPopup('Invalid Credentials');
-      }
-    }
-
-    // ---- Main App Logic ----
-    function loadMainApp() {
-      // Reload from localStorage for persistence
-      leadsDB = getData('leads');
-      followupsDB = getData('followups');
-      const uname = currentUser.username;
-      let html = `
-        <div class="header-bar">
-          <div class="user-name">${uname.charAt(0).toUpperCase()+uname.slice(1)}</div>
-          <button onclick="logout()" class="logout-btn">Logout</button>
+    // --- Render MainPage (user/sem/dev, simplified with card-based dashboard sample) ---
+    function renderMain(){
+      document.getElementById('mainPage').innerHTML = `
+        <h2 style="margin-bottom:22px;text-align:left;color:#7A3AFF;padding-left:7px;background:linear-gradient(120deg,#893cff 10%,#61fde5 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Active Games</h2>
+        <div class="searchbar"><input placeholder="Search games..." oninput="filterGames(this.value)">
+          <svg width="27" height="27" style="opacity:0.33"><circle cx="12" cy="12" r="11" stroke="#843cff" fill="none" stroke-width="2"/><path d="M19 19 L25 25" stroke="#843cff" stroke-width="2" stroke-linecap="round"/></svg>
         </div>
+        <div class="tab-panel" id="gamesPanel"></div>
       `;
-      // Tabs by role
-      if(currentUser.role === 'user'){
-        html+=renderTabs(['User','Add Lead','My Leads'], 'user');
-      } else if(currentUser.role === 'sem'){
-        html+=renderTabs(['Add & Assign Lead','All Leads','Report'], 'sem');
-      } else if(currentUser.role === 'developer'){
-        html+=renderTabs(['Add & Assign Lead','All Leads','Report','Admin'], 'developer');
-      }
-      document.getElementById('app-page').innerHTML = html;
-      document.getElementById('app-page').style.display = 'block';
-      // Show 1st tab for role
-      handleTabSwitch(0);
-    }
-    // --- Tab Rendering ---
-    function renderTabs(tabNames, rkey){
-      return `
-      <div class="tab-nav">
-        ${tabNames.map((t,i)=>`<button type="button" class="nav-tab" onclick="handleTabSwitch(${i})">${t}</button>`).join('')}
-      </div>
-      <div id="tabs-panel"></div>
-      `;
-    }
-    window.handleTabSwitch = function(idx){
-      // Highlight selected tab
-      const tabs = [...document.querySelectorAll('.nav-tab')];
-      tabs.forEach((t,i)=>t.classList.toggle('selected',i===idx));
-      // Panel based on user role/tab
-      if(currentUser.role==='user'){
-        if(idx===0) loadUserHome();
-        else if(idx===1) renderAddLead(false);
-        else if(idx===2) loadMyLeads();
-      } else if(currentUser.role==='sem'){
-        if(idx===0) renderAddLead(true);
-        else if(idx===1) loadAllLeads();
-        else if(idx===2) renderReport();
-      } else if(currentUser.role==='developer'){
-        if(idx===0) renderAddLead(true);
-        else if(idx===1) loadAllLeads();
-        else if(idx===2) renderReport();
-        else if(idx===3) renderDeveloperPanel();
-      }
+      document.getElementById('mainPage').style.display = '';
+      renderGameCards('');
+      // Optional: show side menu
+      buildSideMenu();
     }
 
-    // ---- User Home Tab ----
-    function loadUserHome(){
-      // user stats, overdue, today reminders
-      const uname = currentUser.username;
-      const myLeads = leadsDB.filter(l=>l.addedBy===uname);
-      const myFupsToday = followupsDB.filter(f=>f.by===uname && isToday(f.date));
-      const allFups = followupsDB.filter(f=>f.by===uname);
-      // Overdue: followups assigned to you with date < today and not completed
-      const overdueFups = allFups.filter(f=>!f.completed && new Date(f.date)<todayStart());
-      const todaysFups = allFups.filter(f=>!f.completed && isToday(f.date));
-      document.getElementById('tabs-panel').innerHTML = `
-        <div class="panel">
-          <div style="display:flex;gap:32px;margin-bottom:24px;">
-            <div><b>Leads Added:</b> ${myLeads.length}</div>
-            <div><b>Follow Ups Today:</b> ${myFupsToday.length}</div>
-          </div>
-          <div style="margin-bottom:19px;">
-            <b>Overdue Follow Ups</b>
-            <ul style="margin:9px 0 0 13px;">
-              ${overdueFups.length===0 ? '<li>None</li>' : overdueFups.map(f=>`<li>${showLead(f.leadId)} - ${niceDate(f.date)}</li>`).join('')}
-            </ul>
-          </div>
-          <div>
-            <b>Followup Reminders (Today)</b>
-            <ul style="margin:8px 0 0 13px;">
-              ${todaysFups.length===0? '<li>None</li>' : todaysFups.map(f=>`<li>${showLead(f.leadId)} - ${f.remarks || ''}</li>`).join('')}
-            </ul>
-          </div>
-        </div>`;
-    }
-
-    // ---- Add Lead Tab (for both user/sem) ----
-    function renderAddLead(assignable){
-      const event = `
-        <div class="panel">
-          <form class="form-box" id="add-lead-form">
-            <input class="glass-glow" type="text" id="event-name" placeholder="Event Name" required>
-            <input class="glass-glow" type="text" id="org-society" placeholder="Organising Society" required>
-            <input class="glass-glow" type="text" id="contact-person" placeholder="Contact Person" required>
-            <input class="glass-glow" type="tel" id="phone" placeholder="Phone Number" required>
-            <input class="glass-glow" type="email" id="email" placeholder="Email" required>
-            <select class="glass-glow" required id="lead-stage">
-              <option value="">Lead Stage</option>
-              <option>hot</option>
-              <option>warm</option>
-              <option>cold</option>
-              <option>ni</option>
-              <option>nre</option>
-              <option>junk</option>
-            </select>
-            <textarea id="remarks" class="glass-glow" placeholder="Remarks" rows="2"></textarea>
-            <input type="date" class="glass-glow" id="lead-followup" required value="${todayStr()}">
-            ${assignable ? `
-            <select class="glass-glow" id="assign-to" required>
-              <option value="">Assign To</option>
-              ${USERS.filter(u=>u.role==='user').map(u=>`<option>${u.username}</option>`).join('')}
-            </select>
-            ` : ''}
-            <button class="primary-btn glass-glow" type="submit">Add Lead</button>
-          </form>
-        </div>
-        `;
-      document.getElementById('tabs-panel').innerHTML = event;
-      document.getElementById('add-lead-form').onsubmit = function(e){
-        e.preventDefault();
-        const values = {
-          event:document.getElementById('event-name').value,
-          society:document.getElementById('org-society').value,
-          person:document.getElementById('contact-person').value,
-          phone:document.getElementById('phone').value,
-          email:document.getElementById('email').value,
-          stage:document.getElementById('lead-stage').value,
-          remarks:document.getElementById('remarks').value,
-          followup:document.getElementById('lead-followup').value,
-          addedAt:Date.now(),
-          assignedTo: assignable ? document.getElementById('assign-to').value : currentUser.username,
-          addedBy: assignable ? currentUser.username : currentUser.username,
-          id: 'L'+Date.now()+''+Math.floor(Math.random()*100),
-        };
-        // Save lead
-        leadsDB.push(values);
-        setData('leads',leadsDB);
-        // Save initial followup
-        followupsDB.push({
-          id:'F'+Date.now()+''+Math.floor(Math.random()*100),
-          leadId: values.id,
-          by: values.assignedTo,
-          date: values.followup,
-          completed:false,
-          remarks:'Initial followup'
-        });
-        setData('followups',followupsDB);
-        showPopup('Lead Added');
-        setTimeout(()=>handleTabSwitch( assignable||currentUser.role==='sem' ? 1 : 2 ), 700);
-      }
-    }
-
-    // ---- My Leads (for user) ----
-    function loadMyLeads(){
-      const uname = currentUser.username;
-      const myLeads = leadsDB.filter(l=>l.assignedTo===uname);
-      let tbody = myLeads.map(lead=>{
-        return `<tr>
-          <td>${lead.event}</td>
-          <td>${lead.society}</td>
-          <td>${lead.person}</td>
-          <td>${lead.phone}</td>
-          <td>${lead.email}</td>
-          <td>${lead.stage}</td>
-          <td>${lead.remarks}</td>
-          <td>${niceDateTime(lead.addedAt)}</td>
-          <td><button onclick="addFollowup('${lead.id}')" class="primary-btn glass-glow" style="padding:5px 14px;font-size:0.93rem;">Add Follow Up</button></td>
-        </tr>`;
-      }).join('');
-      if(!tbody) tbody = '<tr><td colspan="9" style="text-align:center;">No leads yet.</td></tr>';
-      document.getElementById('tabs-panel').innerHTML = `
-        <div class="panel" style="overflow-x:auto">
-        <table>
-          <thead>
-            <tr>
-              <th>Event</th><th>Society</th><th>Contact</th><th>Phone</th><th>Email</th><th>Stage</th><th>Remarks</th><th>Added</th><th>Follow Up</th>
-            </tr>
-          </thead>
-          <tbody>${tbody}</tbody>
-        </table>
-        </div>
-      `;
-    }
-    window.addFollowup = function(leadId){
-      const wrap = document.createElement('div');
-      wrap.innerHTML = `
-        <div class="glass-container" style="max-width:350px;">
-          <h2 style="font-size:1.2rem;margin-bottom:9px;">Add Follow Up</h2>
-          <form class="form-box" id="followup-form">
-            <input type="date" class="glass-glow" value="${todayStr()}" id="followup-date" required>
-            <textarea id="followup-remarks" class="glass-glow" placeholder="Remarks" rows="2"></textarea>
-            <button class="primary-btn glass-glow" type="submit">Submit</button>
-          </form>
-        </div>
-      `;
-      showModal(wrap.innerHTML, ()=>{
-        document.getElementById('followup-form').onsubmit = function(e){
-          e.preventDefault();
-          followupsDB.push({
-            id:'F'+Date.now()+''+Math.floor(Math.random()*100),
-            leadId,
-            by: currentUser.username,
-            date: document.getElementById('followup-date').value,
-            completed:false,
-            remarks: document.getElementById('followup-remarks').value
-          });
-          setData('followups',followupsDB);
-          document.body.removeChild(document.querySelector('.modal-overlay'));
-          showPopup('Follow up added');
-        }
-      });
-    }
-
-    // ---- All Leads (sem/dev) ----
-    function loadAllLeads(){
-      let filterUsers = USERS.filter(u=>u.role==='user');
-      let html = `
-        <div class="panel">
-          <div style="margin-bottom:14px;">
-            <select class="glass-glow" id="filter-user">
-              <option value="">Filter by User</option>
-              ${filterUsers.map(u=>`<option>${u.username}</option>`).join('')}
-            </select>
-            <input class="glass-glow" type="date" id="filter-date" value="">
-            <button class="primary-btn glass-glow" onclick="filterLeads()">Search</button>
-          </div>
-          <div style="overflow-x:auto">
-          <table id="all-leads-table">
-            <thead>
-              <tr>
-                <th>Event</th><th>Society</th><th>Contact</th><th>Phone</th><th>Email</th><th>Stage</th>
-                <th>Remarks</th><th>Follow up</th><th>Assigned To</th><th>Added At</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${renderLeadsTable(leadsDB)}
-            </tbody>
-          </table>
+    function renderGameCards(q){
+      let arr = !q
+        ? ACTIVE_GAMES
+        : ACTIVE_GAMES.filter(g=>g.title.toLowerCase().includes(q.toLowerCase()));
+      document.getElementById('gamesPanel').innerHTML = arr.map(gc=>`
+        <div class="game-card">
+          <img class="gc-thumb" src="${gc.img}">
+          <div class="gc-info">
+            <div class="gc-title">${gc.title}</div>
+            <div class="gc-desc">${gc.desc}</div>
+            <div class="gc-progress-wrap">
+              <div style="width:100%;display:flex;align-items:center;">
+                <div class="gc-progress-bg">
+                  <div class="gc-progress-bar" style="width:${gc.progress}%;"></div>
+                </div>
+                <span class="gc-progress-val">${gc.progress}%</span>
+              </div>
+            </div>
           </div>
         </div>
+      `).join('');
+    }
+    window.filterGames = renderGameCards;
+
+    // --- Side Menu (reference 1st image, togglable) ---
+    function buildSideMenu(){
+      let sm = document.getElementById('sideMenu');
+      sm.innerHTML = `
+        <img src="https://randomuser.me/api/portraits/men/25.jpg">
+        <div class="sm-username">${currentUser.name||currentUser.username}</div>
+        <a href="#" class="sm-link selected">Games</a>
+        <a href="#" class="sm-link">Streams</a>
+        <a href="#" class="sm-link">Upcoming</a>
+        <a href="#" class="sm-link">Library</a>
+        <button class="sm-link" style="background: linear-gradient(90deg,#e8cff2 61%,#b75ffc 100%);color:#885bec">Join pro for free<br>games</button>
       `;
-      document.getElementById('tabs-panel').innerHTML = html;
+      sm.classList.add('open');
+      document.getElementById('menuToggle').style.display='';
     }
-    window.filterLeads = function(){
-      let valU = document.getElementById('filter-user').value;
-      let valD = document.getElementById('filter-date').value;
-      let filtered = leadsDB.filter(l=>
-        (!valU || l.assignedTo===valU) &&
-        (!valD || l.addedAt && niceDateStr(l.addedAt)==valD)
-      );
-      document.querySelector('#all-leads-table tbody').innerHTML = renderLeadsTable(filtered);
-    }
-    function renderLeadsTable(arr){
-      if(arr.length === 0) return `<tr><td colspan="10" style="text-align:center;">No leads found.</td></tr>`;
-      return arr.map(lead=>{
-        return `<tr>
-          <td>${lead.event}</td>
-          <td>${lead.society}</td>
-          <td>${lead.person}</td>
-          <td>${lead.phone}</td>
-          <td>${lead.email}</td>
-          <td>${lead.stage}</td>
-          <td>${lead.remarks}</td>
-          <td>${renderFollowups(lead.id)}</td>
-          <td>${lead.assignedTo}</td>
-          <td>${niceDateTime(lead.addedAt)}</td>
-        </tr>`;
-      }).join('');
-    }
-    function renderFollowups(leadId){
-      const fups = followupsDB.filter(f=>f.leadId===leadId);
-      if(!fups.length) return 'None';
-      return `<ul style="padding-left:13px;font-size:0.94rem;">
-        ${fups.map(f=>
-          `<li>
-            ${niceDate(f.date)}: ${f.remarks||''}
-            ${f.completed ? '<span style="color:green">✔️</span>' : ''}
-          </li>`
-        ).join('')}
-      </ul>`;
+    window.toggleMenu = function(){
+      let sm = document.getElementById('sideMenu');
+      sm.classList.toggle('open');
     }
 
-    // ---- Report (sem/dev) ----
-    function renderReport(){
-      let dates = [...new Set(leadsDB.map(l=>niceDateStr(l.addedAt)))].sort().reverse();
-      let html = `
-        <div class="panel">
-        <select id="report-date" class="glass-glow" onchange="renderReport()">
-          <option value="">Select date</option>
-          ${dates.map(d=>`<option>${d}</option>`).join('')}
-        </select>
-        <table>
-        <thead>
-          <tr><th>User</th><th>No. of Leads</th><th>No. of Followups</th></tr>
-        </thead>
-        <tbody>
-        ${USERS.filter(u=>u.role==='user').map(u=>{
-          let leads = leadsDB.filter(l=>l.assignedTo===u.username);
-          let dateFilter = document.getElementById('report-date')?.value;
-          if(dateFilter) leads = leads.filter(l=>niceDateStr(l.addedAt)===dateFilter);
-          let fups = followupsDB.filter(f=>f.by===u.username);
-          if(dateFilter) fups = fups.filter(f=>niceDateStr(f.date)===dateFilter);
-          return `<tr>
-            <td>${u.username}</td>
-            <td>${leads.length}</td>
-            <td>${fups.length}</td>
-          </tr>`;
-        }).join('')}
-        </tbody>
-        </table>
-        </div>
-      `;
-      document.getElementById('tabs-panel').innerHTML = html;
-    }
+    // On load display only login
+    document.getElementById('mainPage').style.display='none';
+    document.getElementById('logoutBtn').style.display='none';
+    document.getElementById('usernameBar').innerText = '';
 
-    // ---- Developer/Admin Tab ---
-    function renderDeveloperPanel(){
-      // Full control panel: usernames, passwords, roles, etc.
-      let html = `
-        <div class="panel">
-          <h2 style="font-size:1.1rem">Admin Control Panel</h2>
-          <div style="margin-bottom:22px;">
-            <b>All Users</b>
-            <table>
-              <thead><tr><th>User</th><th>Role</th><th>Password</th><th>Action</th></tr></thead>
-              <tbody>
-                ${USERS.map(u=>`
-                <tr>
-                  <td contenteditable="true" onblur="adminUpdateUser('${u.username}','username',this.innerText)">${u.username}</td>
-                  <td contenteditable="true" onblur="adminUpdateUser('${u.username}','role',this.innerText)">${u.role}</td>
-                  <td contenteditable="true" onblur="adminUpdateUser('${u.username}','password',this.innerText)">${u.password}</td>
-                  <td><button onclick="adminDeleteUser('${u.username}')" style="color:#d22c0c;background:none;border:none;cursor:pointer">Delete</button></td>
-                </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-          <div><button class="primary-btn glass-glow" onclick="adminAddUser()">Add new user</button></div>
-        </div>
-      `;
-      document.getElementById('tabs-panel').innerHTML = html;
-    }
-    window.adminUpdateUser = function(username, field, val){
-      // In a real app, update database or API. Here, just update USERS array and refresh.
-      let idx = USERS.findIndex(u=>u.username===username);
-      if(idx>-1){
-        USERS[idx][field]=val;
-        showPopup('User updated');
-        renderDeveloperPanel();
-      }
-    }
-    window.adminDeleteUser = function(username){
-      let idx = USERS.findIndex(u=>u.username===username);
-      if(idx>-1){
-        USERS.splice(idx,1);
-        showPopup('User deleted');
-        renderDeveloperPanel();
-      }
-    }
-    window.adminAddUser = function(){
-      USERS.push({username:'newuser','password':'pass','role':'user'});
-      renderDeveloperPanel();
-    }
-
-    // ---- Modal Utility ----
-    function showModal(html, cb){
-      const mask = document.createElement('div');
-      mask.className = "modal-overlay";
-      mask.style='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(30,60,80,0.21);z-index:1009;display:flex;align-items:center;justify-content:center;';
-      mask.innerHTML = `<div>${html}</div>`;
-      mask.onclick = function(e){ if(e.target===mask)document.body.removeChild(mask);}
-      document.body.appendChild(mask);
-      if(cb) setTimeout(cb,120);
-    }
-
-    // ---- Logout ----
-    window.logout = function(){
-      currentUser = null;
-      document.getElementById('app-page').style.display = 'none';
-      document.getElementById('login-page').style.display = 'block';
-      document.getElementById('login-form').reset();
-    }
-
-    // --- Helper: Nice Formatting
-    function niceDate(ts) {
-      if(!ts) return "";
-      const odate = typeof ts === 'string' && ts.length<=10 ? new Date(ts) : new Date(ts);
-      return odate.toLocaleDateString('en-IN',{month:'short',day:'2-digit'});
-    }
-    function niceDateStr(ts){
-      const d = typeof ts === 'number'? new Date(ts) : new Date(ts);
-      return d.toISOString().split('T')[0];
-    }
-    function niceDateTime(ts){
-      const d = new Date(ts);
-      const dstr = d.toLocaleDateString('en-IN',{month:'short',day:'2-digit'});
-      const tstr = d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
-      return dstr+' '+tstr;
-    }
-    function todayStr(){
-      const d=new Date();
-      return d.toISOString().split('T')[0];
-    }
-    function todayStart(){
-      let d = new Date();
-      d.setHours(0); d.setMinutes(0); d.setSeconds(0); d.setMilliseconds(0);
-      return d;
-    }
-    function isToday(date){
-      if(!date) return false;
-      let d = typeof date==='string'?new Date(date):new Date(date);
-      let now = new Date();
-      return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
-    }
-    function showLead(leadId){
-      let l = leadsDB.find(l=>l.id===leadId);
-      return l ? l.event : leadId;
-    }
-
-    // --- Keep code scoped & encapsulated for security in real deployment
   </script>
 </body>
 </html>
