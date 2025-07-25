@@ -44,7 +44,6 @@ body {
   88% {opacity: 1;}
   100% {opacity: 1; transform: translate(-50%, 0) scale(1);}
 }
-/* LOGIN CARD */
 #login-card {
   width: 370px;
   margin: 84px auto 0 auto;
@@ -100,7 +99,6 @@ body {
   letter-spacing: 0.02em;
   margin-bottom: 10px;
 }
-/* Tabs Glass Look - Main Navigation */
 .glass-tabs-bar {
   display: flex;
   gap: 18px;
@@ -146,7 +144,6 @@ body {
   color: #fff;
   background: rgba(255, 255, 255, 0.10);
 }
-/* General panel style */
 .glass-panel {
   padding: 32px 28px;
   background: rgba(255, 255, 255, 0.11);
@@ -184,7 +181,6 @@ button {
 button:active {
   transform: scale(0.96);
 }
-/* Table Styles */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -226,7 +222,6 @@ tr:hover {
 .Cold { background: #1da5b9; }
 .NI { background: #888; }
 .NRE { background: #b322a6; }
-/* Forms and inputs */
 input, select, textarea {
   width: 100%;
   margin-top: 6px;
@@ -260,7 +255,6 @@ label {
   color: #bbdefbcc;
   user-select: none;
 }
-/* Suparadmin msg-input */
 .msg-input {
   width: 70%;
   margin-right: 8px;
@@ -271,13 +265,11 @@ label {
   font-family: 'Inter', sans-serif;
   color: #073766;
 }
-/* Misc */
 .flex {
   display: flex;
   gap: 12px;
   align-items: center;
 }
-/* Toast notification */
 .snackbar {
   position: fixed;
   left: 50vw;
@@ -302,7 +294,6 @@ label {
   from { opacity: 1; }
   to { opacity: 0; }
 }
-/* Modal background */
 .modal-bg {
   display: none;
   position: fixed;
@@ -312,7 +303,6 @@ label {
   backdrop-filter: blur(6px);
 }
 .modal-bg.open { display: block; }
-/* Modal */
 .modal {
   display: none;
   position: fixed;
@@ -372,7 +362,6 @@ label {
 .modal form button:hover {
   background: #1f68d9dd;
 }
-/* Terms & Conditions link style */
 #terms-text {
   font-size: 0.9rem;
   color: #b4d5ffcc;
@@ -387,7 +376,6 @@ label {
   text-decoration: underline;
   user-select: text;
 }
-/* Responsive */
 @media (max-width: 780px) {
   #main-container {
     max-width: 95vw;
