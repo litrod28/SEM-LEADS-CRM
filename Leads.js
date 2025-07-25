@@ -1,446 +1,420 @@
-// ================================
-// --- CRM PORTAL SEM LOGIC ---
-// ================================
-
-// --- USERS/ROLE/PASSWORD DATA ---
-// You can change user/passwords here.
-const USERS = [
-  {username: "sushant", pw: "sush@123", role: "user"},
-  {username: "gaurav", pw: "gaurav@123", role: "user"},
-  {username: "yash", pw: "yash@123", role: "user"},
-  {username: "shikha", pw: "shikha@123", role: "user"},
-  {username: "tripti", pw: "tripti@123", role: "user"},
-  {username: "anshi", pw: "anshi@123", role: "user"},
-  {username: "sem", pw: "semops@123", role: "sem"},
-  {username: "developer", pw: "dev041228", role: "developer"},
+/* --- Data (in-memory for demo only) --- */
+const users = [
+  {username:"sushant", password:"sush@123", role:"user"},
+  {username:"gaurav", password:"gaurav@123", role:"user"},
+  {username:"yash", password:"yash@123", role:"user"},
+  {username:"shikha", password:"shikha@123", role:"user"},
+  {username:"tripti", password:"tripti@123", role:"user"},
+  {username:"anshi", password:"anshi@123", role:"user"},
+  {username:"sem", password:"semops@123", role:"sem"},
+  {username:"developer", password:"dev041228", role:"developer"},
 ];
+let leads = [];
+let followups = [];
+let session_user = null;
 
-// --- DATA STORAGE KEYS ---
-const LEADS_KEY = "crmleads";
-const FOLLOWUPS_KEY = "crmfollowups";
-
-// --- STATE ---
-let CURRENT_USER = null;
-let allLeads = [];
-let allFollowUps = [];
-
-// --- UTILS ---
-function getTodayISO() {
-  let d = new Date();
-  const tzoffset = d.getTimezoneOffset() * 60000;
-  return (new Date(d.getTime() - tzoffset)).toISOString().split("T")[0];
+/* --- Helper Functions --- */
+function showPopup(msg) {
+  const popup = document.getElementById('popup');
+  popup.style.display = '';
+  document.getElementById('popup-content').textContent = msg;
+  setTimeout(() => { popup.style.display = 'none'; }, 1000);
+}
+function formatDateIST(date) {
+  const d = new Date(date);
+  return d.toLocaleString('en-IN', {timeZone:'Asia/Kolkata'});
+}
+function generateId() {
+  return Math.random().toString(36).substr(2,9) + Date.now();
 }
 function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-function getUserList(excludeRoles=[]) {
-  return USERS.filter(u => !excludeRoles.includes(u.role));
-}
-function saveLeads() {
-  localStorage.setItem(LEADS_KEY, JSON.stringify(allLeads));
-}
-function loadLeads() {
-  const data = localStorage.getItem(LEADS_KEY);
-  allLeads = data ? JSON.parse(data) : [];
-}
-function saveFollowUps() {
-  localStorage.setItem(FOLLOWUPS_KEY, JSON.stringify(allFollowUps));
-}
-function loadFollowUps() {
-  const data = localStorage.getItem(FOLLOWUPS_KEY);
-  allFollowUps = data ? JSON.parse(data) : [];
+  return str.slice(0,1).toUpperCase() + str.slice(1);
 }
 
-// --- UI HELPERS ---
-function logout() {
-  CURRENT_USER = null;
-  sessionStorage.clear();
-  document.getElementById("loginPage").style.display = "block";
-  document.getElementById("userNameBadge").innerText = "";
-  hideAllTabs();
-}
-function showWelcomePopup(msg, isError) {
-  const p = document.getElementById("welcomePopup");
-  p.innerText = msg;
-  p.style.background = isError ? "#ff3e6eeb" : "rgba(60,186,255,0.32)";
-  p.style.color = isError ? "#fff" : "#034574";
-  p.classList.add("active");
-  setTimeout(() => {
-    p.classList.remove("active");
-  }, 1000);
-}
-function hideAllTabs() {
-  [
-    "userTab", "addLeadTab", "myLeadsTab", "addAssignLeadTab",
-    "allLeadsTab", "reportTab", "superAdminTab",
-  ].forEach(id => {
-    document.getElementById(id).style.display = "none";
-  });
-  [
-    "tabUser", "tabAddLead", "tabMyLeads", "tabAddAssignLead",
-    "tabAllLeads", "tabReport", "tabSuperAdmin"
-  ].forEach(id => {
-    document.getElementById(id).style.display = "none";
-    document.getElementById(id)?.classList.remove("active-tab");
-  });
-}
-function changeTab(tabId) {
-  [
-    "userTab", "addLeadTab", "myLeadsTab", "addAssignLeadTab",
-    "allLeadsTab", "reportTab", "superAdminTab",
-  ].forEach(id => {
-    document.getElementById(id).style.display = (id === tabId ? "block" : "none");
-    const tabBtn = document.getElementById(
-      "tab" + id.charAt(0).toUpperCase() + id.slice(1, -3)
-    );
-    if (tabBtn) tabBtn.classList.toggle("active-tab", id === tabId);
-  });
-}
-
-function showUserTabs(role) {
-  // user, sem, developer
-  const visibleTabs = {
-    user: ["tabUser", "tabAddLead", "tabMyLeads"],
-    sem: ["tabAddAssignLead", "tabAllLeads", "tabReport"],
-    developer: ["tabAddAssignLead", "tabAllLeads", "tabReport", "tabSuperAdmin"]
-  }[role];
-  hideAllTabs();
-  if (!visibleTabs) return;
-  visibleTabs.forEach(id => {
-    document.getElementById(id).style.display = "block";
-  });
-  // Default to first visible
-  changeTab(visibleTabs[0].replace(/^tab/, "").toLowerCase() + "Tab");
-}
-
-// --- LOGIN FORM HANDLING ---
-document.getElementById("loginForm").onsubmit = function (e) {
+/* --- Auth and Routing --- */
+function login(e) {
   e.preventDefault();
-  const uname = document.getElementById("username").value.trim().toLowerCase();
-  const pw = document.getElementById("password").value;
-  const user = USERS.find(u => u.username === uname && u.pw === pw);
-  if (user) {
-    CURRENT_USER = user;
-    sessionStorage.setItem("user", JSON.stringify(user));
-    document.getElementById("loginPage").style.display = "none";
-    document.getElementById("userNameBadge").innerText = capitalize(uname);
-    showUserTabs(user.role);
-    showWelcomePopup("Welcome, " + capitalize(uname) + "!");
-    refreshAllTabs();
-  } else {
-    showWelcomePopup("Login Failed!", true);
-  }
-  return false;
-};
-document.getElementById("logoutBtn").onclick = logout;
-
-// --- ON PAGE LOAD: USER AUTO RELOGIN if possible ---
-window.addEventListener("DOMContentLoaded", () => {
-  loadLeads();
-  loadFollowUps();
-  const session = sessionStorage.getItem("user");
-  if (session) {
-    CURRENT_USER = JSON.parse(session);
-    document.getElementById("loginPage").style.display = "none";
-    document.getElementById("userNameBadge").innerText = capitalize(CURRENT_USER.username);
-    showUserTabs(CURRENT_USER.role);
-    refreshAllTabs();
-  }
-  // Fill assign-to dropdown for SEM/DEV
-  const assignTo = document.getElementById("assignTo");
-  assignTo.innerHTML = getUserList(["sem", "developer"])
-    .map(u => `<option value="${u.username}">${capitalize(u.username)}</option>`)
-    .join("");
-  // Fill user filter for AllLeads/Report
-  document.getElementById("filterUser").innerHTML =
-    `<option value="">All Users</option>` +
-    getUserList(["sem", "developer"])
-      .map(u => `<option value="${u.username}">${capitalize(u.username)}</option>`)
-      .join("");
-});
-
-// --- Tab Switching ----
-document.getElementById("tabUser").onclick = () => { changeTab("userTab"); refreshUserTab(); };
-document.getElementById("tabAddLead").onclick = () => { changeTab("addLeadTab"); };
-document.getElementById("tabMyLeads").onclick = () => { changeTab("myLeadsTab"); refreshMyLeads(); };
-document.getElementById("tabAddAssignLead").onclick = () => { changeTab("addAssignLeadTab"); };
-document.getElementById("tabAllLeads").onclick = () => { changeTab("allLeadsTab"); refreshAllLeads(); };
-document.getElementById("tabReport").onclick = () => { changeTab("reportTab"); refreshReport(); };
-document.getElementById("tabSuperAdmin").onclick = () => { changeTab("superAdminTab"); };
-
-// --- LEAD FORMAT: {
-//    id, eventName, organisingSociety, contactPerson, phone, email,
-//    leadStage, remarks, followupDate, user, dateAdded, assignedBy
-//  }
-// --- FOLLOWUP FORMAT: {id, leadId, who, date, done, note}
-
-// --- ADD LEAD: USER ---
-document.getElementById("addLeadForm").onsubmit = function (e) {
-  e.preventDefault();
-  if (!CURRENT_USER) return;
-  const fd = new FormData(this);
-  const newLead = {
-    id: Date.now().toString(),
-    eventName: fd.get("eventName"),
-    organisingSociety: fd.get("organisingSociety"),
-    contactPerson: fd.get("contactPerson"),
-    phone: fd.get("phone"),
-    email: fd.get("email"),
-    leadStage: fd.get("leadStage"),
-    remarks: fd.get("remarks"),
-    followupDate: fd.get("followupDate"),
-    user: CURRENT_USER.username,
-    dateAdded: getTodayISO(),
-    assignedBy: CURRENT_USER.username
-  };
-  allLeads.push(newLead);
-  saveLeads();
-  showWelcomePopup("Lead Added!");
-  this.reset();
-  refreshUserTab();
-};
-
-// --- ADD/ASSIGN LEAD: SEM/DEVELOPER ---
-document.getElementById("assignLeadForm").onsubmit = function (e) {
-  e.preventDefault();
-  if (!CURRENT_USER) return;
-  const fd = new FormData(this);
-  const newLead = {
-    id: Date.now().toString(),
-    eventName: fd.get("eventName"),
-    organisingSociety: fd.get("organisingSociety"),
-    contactPerson: fd.get("contactPerson"),
-    phone: fd.get("phone"),
-    email: fd.get("email"),
-    leadStage: fd.get("leadStage"),
-    remarks: fd.get("remarks"),
-    followupDate: fd.get("followupDate"),
-    user: fd.get("assignTo"),
-    dateAdded: getTodayISO(),
-    assignedBy: CURRENT_USER.username
-  };
-  allLeads.push(newLead);
-  saveLeads();
-  showWelcomePopup("Lead Assigned!");
-  this.reset();
-  refreshAllLeads();
-  refreshReport();
-};
-
-// ============== USER TAB LOGIC (DASHBOARD) =========
-function refreshUserTab() {
-  if (!CURRENT_USER) return;
-  const username = CURRENT_USER.username;
-  const leads = allLeads.filter(lead => lead.user === username);
-  document.getElementById("leadCount").textContent = leads.length;
-  // Follow-ups Due today (reminders)
-  const today = getTodayISO();
-  const followupsToday = leads.filter(ld =>
-    ld.followupDate && ld.followupDate === today
-  );
-  document.getElementById("todayFollowUpCount").textContent = followupsToday.length;
-  // Overdue = previous followups not done (date < today)
-  const overdue = leads.filter(ld =>
-    ld.followupDate &&
-    ld.followupDate < today &&
-    !didCompleteFollowup(ld.id, ld.followupDate, username)
-  );
-  document.getElementById("overdueCount").textContent = overdue.length;
-  // Reminders list
-  const ul = document.getElementById("todayFollowUpsList");
-  ul.innerHTML = followupsToday.map(ld =>
-    `<li>${ld.eventName} – <small>${ld.contactPerson}</small></li>`
-  ).join("");
-}
-function didCompleteFollowup(leadId, date, who) {
-  return allFollowUps.some(f =>
-    f.leadId === leadId && f.date === date && f.who === who && f.done
-  );
-}
-
-// ============= MY LEADS TAB LOGIC ===============
-function refreshMyLeads() {
-  if (!CURRENT_USER) return;
-  const leads = allLeads.filter(lead => lead.user === CURRENT_USER.username);
-  const list = document.getElementById("myLeadsList");
-  if (leads.length === 0) {
-    list.innerHTML = "<em>No leads added yet.</em>";
+  const uname = document.getElementById('username').value.trim().toLowerCase();
+  const pwd = document.getElementById('password').value;
+  const user = users.find(u => u.username === uname && u.password === pwd);
+  if (!user) {
+    showPopup("Incorrect username or password");
     return;
   }
-  list.innerHTML = leads.map(ld =>
-    `<div class="lead-list-item">
-      <div>
-        <b>${ld.eventName}</b> (${ld.leadStage})<br>
-        <small>${ld.organisingSociety} | ${ld.contactPerson} | ${ld.phone}</small><br>
-        <small>${ld.email}</small><br>
-        Remarks: <i>${ld.remarks}</i><br>
-        <small>Follow-up: <b>${ld.followupDate || "No date"}</b>, Added: ${ld.dateAdded}</small>
-      </div>
-      <button onclick="addFollowUpPrompt('${ld.id}')" style="margin-left:10px" class="add-btn">Add Follow-up</button>
-    </div>`
-  ).join("");
+  session_user = {...user};
+  showPopup(`Welcome, ${capitalize(session_user.username)}!`);
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = '';
+  renderDashboard();
+}
+function logout() {
+  session_user = null;
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('login-screen').style.display = '';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
 }
 
-// == FOLLOW-UP PROMPT/ADD (simple modal) ==
-function addFollowUpPrompt(leadId) {
-  const note = prompt("Follow-up remarks (optional):");
-  if (note === null) return;
-  allFollowUps.push({
-    id: Date.now().toString(),
-    leadId,
-    who: CURRENT_USER.username,
-    date: getTodayISO(),
-    done: true,
-    note: note || ""
+/* --- Dashboard Rendering --- */
+function renderDashboard() {
+  document.getElementById('user-label').innerText = capitalize(session_user.username);
+  let tabs = [];
+  if (session_user.role === 'user') {
+    tabs = [
+      {label: "User", fn: renderUserTab},
+      {label: "Add Lead", fn: renderAddLeadTab},
+      {label: "My Leads", fn: renderMyLeadsTab},
+    ];
+  } else if (session_user.role === 'sem') {
+    tabs = [
+      {label: "Add & Assign Lead", fn: renderSemAddAssignLead},
+      {label: "All Leads", fn: renderSemAllLeads},
+      {label: "Report", fn: renderSemReport},
+    ];
+  } else if (session_user.role === 'developer') {
+    tabs = [
+      {label: "Admin — Users", fn: renderDevUsers},
+      {label: "Admin — Leads", fn: renderSemAllLeads},
+      {label: "Admin — Report", fn: renderSemReport},
+    ];
+  }
+  const tabbar = document.getElementById('tab-bar');
+  tabbar.innerHTML = '';
+  tabs.forEach((tab, i) => {
+    let div = document.createElement('div');
+    div.className = 'tab';
+    div.textContent = tab.label;
+    div.onclick = () => { selectTab(i); };
+    if (i === 0) div.classList.add('active');
+    tabbar.appendChild(div);
   });
-  saveFollowUps();
-  showWelcomePopup("Follow-up added!");
-  refreshUserTab();
-  refreshMyLeads();
+  window.__currTabs = tabs;
+  selectTab(0);
+}
+function selectTab(idx) {
+  const tabs = document.querySelectorAll('.tab');
+  tabs.forEach((tab, i) => tab.classList.toggle('active', i === idx));
+  document.getElementById('tab-content').innerHTML = '';
+  setTimeout(() => { window.__currTabs[idx].fn(); }, 100);
 }
 
-// ============= SEM/ALL LEADS TAB LOGIC ===============
-function refreshAllLeads() {
-  loadLeads();
-  let leads = [...allLeads];
-  // Filters
-  const searchVal = document.getElementById("searchLeadAll").value.trim().toLowerCase();
-  if (searchVal) {
-    leads = leads.filter(ld =>
-      [
-        ld.eventName, ld.organisingSociety, ld.contactPerson, ld.email
-      ].some(field => field && field.toLowerCase().includes(searchVal))
-    );
-  }
-  const userVal = document.getElementById("filterUser").value;
-  if (userVal) {
-    leads = leads.filter(ld => ld.user === userVal);
-  }
-  const dateVal = document.getElementById("filterDate").value;
-  if (dateVal) {
-    leads = leads.filter(ld => ld.dateAdded === dateVal);
-  }
-  // List output
-  const el = document.getElementById("allLeadsList");
-  el.innerHTML = leads.length ? leads.map(ld =>
-    `<div class="lead-list-item">
-      <div>
-        <b>${ld.eventName}</b> (<i>${ld.leadStage}</i>)<br>
-        <span>${ld.organisingSociety} | ${ld.contactPerson} | ${ld.phone} | ${ld.email}</span><br>
-        Remarks: <i>${ld.remarks || ""}</i><br>
-        Follow-up: <b>${ld.followupDate || "None"}</b><br>
-        Assigned: <b>${capitalize(ld.user)}</b> by <span>${capitalize(ld.assignedBy)}</span> | Date Added: ${ld.dateAdded}
-      </div>
-    </div>`
-  ).join("") : "<em>No leads found.</em>";
-}
-// --- AllLeads Filter events ---
-document.getElementById("searchLeadAll").oninput =
-  document.getElementById("filterUser").onchange =
-  document.getElementById("filterDate").onchange = refreshAllLeads;
-
-// ================== REPORT TAB LOGIC ===================
-function refreshReport() {
-  // Show users, their lead and follow-up count, for today or selected filter
-  loadLeads(); loadFollowUps();
-  const ulist = getUserList(["sem", "developer"]);
-  const date = document.getElementById("reportDate").value || getTodayISO();
-  let html = "";
-  ulist.forEach(u => {
-    const leadsCount = allLeads.filter(ld => ld.user === u.username && ld.dateAdded === date).length;
-    const follCount = allFollowUps.filter(f =>
-      f.who === u.username && f.date === date && f.done
-    ).length;
-    html += `<tr>
-      <td>${capitalize(u.username)}</td>
-      <td>${leadsCount}</td>
-      <td>${follCount}</td>
-      <td>${leadsCount + follCount}</td>
-    </tr>`;
-  });
-  document.getElementById("reportTableBody").innerHTML = html;
-}
-document.getElementById("reportDate").onchange = refreshReport;
-
-// ================== SUPER ADMIN PANEL =====================
-// Demo: allow editing users/roles/passwords/tab names/popups
-if(document.getElementById("superAdminTab")) {
-  document.getElementById("superAdminTab").innerHTML += `
-    <div style="margin:20px 0">
-      <h3>User Manager</h3>
-      <table style="width:100%;border-collapse:collapse">
-        <thead>
-          <tr><th>Username</th><th>Role</th><th>Password</th><th>Edit</th></tr>
-        </thead>
-        <tbody id="superAdminUsers"></tbody>
-      </table>
-    </div>
-    <div style="margin:20px 0">
-      <h3>Tab Renaming</h3>
-      <label>Rename Tab: 
-        <select id="tabSelectForRename">
-          <option value="tabUser">User</option>
-          <option value="tabAddLead">Add Lead</option>
-          <option value="tabMyLeads">My Leads</option>
-          <option value="tabAddAssignLead">Add & Assign Lead</option>
-          <option value="tabAllLeads">All Leads</option>
-          <option value="tabReport">Report</option>
-          <option value="tabSuperAdmin">Super Admin Panel</option>
-        </select>
-      </label>
-      <input type="text" id="newTabName" style="width:200px" placeholder="New Tab Name" />
-      <button class="add-btn" onclick="renameTab()">Rename</button>
+/* ----- User Role Tabs ----- */
+function renderUserTab() {
+  const userLeads = leads.filter(l => l.assignedTo === session_user.username);
+  const today = new Date().toISOString().substring(0, 10);
+  const followupDone = followups.filter(f => f.user === session_user.username && f.date.split('T')[0] === today).length;
+  const overdue = followups.filter(f => f.user === session_user.username && f.status !== 'done' && new Date(f.date) < new Date());
+  const reminders = followups.filter(f => f.user === session_user.username && f.status !== 'done' && f.date.split('T')[0] === today);
+  document.getElementById('tab-content').innerHTML = `
+    <div class="card">
+      <div class="section-title">User Overview</div>
+      <div>Name: <b>${capitalize(session_user.username)}</b></div>
+      <div>Leads added: <b>${userLeads.length}</b></div>
+      <div>Follow-up done today: <b>${followupDone}</b></div>
+      <div>Overdue Follow-ups:</div>
+      <ul>${overdue.map(f => `<li>${f.leadEventName} &mdash; ${formatDateIST(f.date)}</li>`).join('') || '<li>(none)</li>'}</ul>
+      <div>Follow-up reminders for today:</div>
+      <ul>${reminders.map(f => `<li>${f.leadEventName} &mdash; ${formatDateIST(f.date)}</li>`).join('') || '<li>(none)</li>'}</ul>
     </div>
   `;
-  // User edit table
-  function refreshSuperAdminUsers() {
-    const tbody = document.getElementById("superAdminUsers");
-    tbody.innerHTML = USERS.map((u, i) =>
-      `<tr>
-        <td>${capitalize(u.username)}</td>
-        <td>
-          <select id="role_${i}">
-            <option value="user"${u.role==="user"?" selected":""}>user</option>
-            <option value="sem"${u.role==="sem"?" selected":""}>sem</option>
-            <option value="developer"${u.role==="developer"?" selected":""}>developer</option>
-          </select>
-        </td>
-        <td>
-          <input type="text" id="pw_${i}" value="${u.pw}" style="width:110px" />
-        </td>
-        <td>
-          <button class="add-btn" style="padding:3px 18px" onclick="editUser(${i})">Save</button>
-        </td>
-      </tr>`
-    ).join("");
-  }
-  window.editUser = function(idx) {
-    USERS[idx].pw = document.getElementById("pw_"+idx).value;
-    USERS[idx].role = document.getElementById("role_"+idx).value;
-    alert("User updated!");
-    refreshSuperAdminUsers();
-  }
-  window.renameTab = function() {
-    const sel = document.getElementById("tabSelectForRename").value;
-    const val = document.getElementById("newTabName").value;
-    if(sel && val) {
-      document.getElementById(sel).innerText = val;
-      alert("Tab renamed.");
-    }
+}
+function renderAddLeadTab() {
+  const fields = `
+    <form class="lead-form" onsubmit="addLead(event)">
+      <label>Event Name <input required name="eventName"></label>
+      <label>Organising Society <input required name="orgSociety"></label>
+      <label>Contact Person <input required name="contactPerson"></label>
+      <label>Phone No. <input required name="phone" maxlength="15"></label>
+      <label>Email <input type="email" required name="email"></label>
+      <label>Lead Stage
+        <div class="lead-stage">
+          ${["hot","wrm","cld","ni","nre","junk"].map(lv =>
+            `<label><input type="radio" name="leadStage" value="${lv}" required><span>${lv.toUpperCase()}</span></label>`
+          ).join('')}
+        </div>
+      </label>
+      <label>Remarks <textarea name="remarks"></textarea></label>
+      <label>Followup date/time <input type="datetime-local" required name="followup"></label>
+      <button class="glass-btn" type="submit">Add Lead</button>
+    </form>
+  `;
+  document.getElementById('tab-content').innerHTML = `<div class="card">${fields}</div>`;
+}
+function addLead(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const leadId = generateId();
+  let lead = {
+    id: leadId,
+    eventName: fd.get("eventName"),
+    orgSociety: fd.get("orgSociety"),
+    contactPerson: fd.get("contactPerson"),
+    phone: fd.get("phone"),
+    email: fd.get("email"),
+    leadStage: fd.get("leadStage"),
+    remarks: fd.get("remarks"),
+    assignedTo: session_user.username,
+    dateAdded: new Date().toISOString(),
+  };
+  leads.push(lead);
+  followups.push({id: generateId(), user: session_user.username, leadId, leadEventName: lead.eventName, date: fd.get("followup"), status: "pending"});
+  showPopup("Lead Added!");
+  renderDashboard();
+}
+function renderMyLeadsTab() {
+  const userLeads = leads.filter(l => l.assignedTo === session_user.username);
+  let html = `
+    <div class="card">
+      <div class="section-title">My Leads</div>
+      <table class="leads-table">
+      <tr>
+        <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th><th>Email</th>
+        <th>Lead Stage</th><th>Remarks</th><th>Date Added</th><th>Add Follow-up</th>
+      </tr>
+      ${userLeads.map(l =>
+        `<tr>
+          <td contenteditable="true" onblur="editLead('${l.id}','eventName',this.innerText)">${l.eventName}</td>
+          <td contenteditable="true" onblur="editLead('${l.id}','orgSociety',this.innerText)">${l.orgSociety}</td>
+          <td contenteditable="true" onblur="editLead('${l.id}','contactPerson',this.innerText)">${l.contactPerson}</td>
+          <td contenteditable="true" onblur="editLead('${l.id}','phone',this.innerText)">${l.phone}</td>
+          <td contenteditable="true" onblur="editLead('${l.id}','email',this.innerText)">${l.email}</td>
+          <td>
+            <select onchange="editLead('${l.id}','leadStage',this.value)">
+              ${["hot","wrm","cld","ni","nre","junk"].map(stage =>
+                `<option value="${stage}"${l.leadStage === stage ? ' selected' : ''}>${stage.toUpperCase()}</option>`
+              ).join('')}
+            </select>
+          </td>
+          <td contenteditable="true" onblur="editLead('${l.id}','remarks',this.innerText)">${l.remarks || ''}</td>
+          <td>${formatDateIST(l.dateAdded)}</td>
+          <td><button class="followup-btn" onclick="addFollowup('${l.id}','${l.eventName}')">+</button></td>
+        </tr>`
+      ).join('')}
+      </table>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+}
+function editLead(leadId, field, val) {
+  let lead = leads.find(l => l.id === leadId);
+  if (!lead) return;
+  if (field === "leadStage") lead[field] = val;
+  else lead[field] = val.trim();
+  showPopup("Updated!");
+}
+function addFollowup(leadId, eventName) {
+  const dt = prompt("Enter follow-up datetime (YYYY-MM-DDTHH:MM):", (new Date().toISOString().slice(0,16)));
+  if (dt && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dt)) {
+    followups.push({id: generateId(), user: session_user.username, leadId, leadEventName: eventName, date: dt, status: "pending"});
+    showPopup("Follow-up Added!");
+    renderMyLeadsTab();
   }
 }
 
-// ========== REFRESH FOR ALL == (per tab switch or login)
-function refreshAllTabs() {
-  if (!CURRENT_USER) return;
-  refreshUserTab();
-  refreshMyLeads();
-  refreshAllLeads();
-  refreshReport();
-  if (CURRENT_USER.role === "developer") refreshSuperAdminUsers();
+/* -------- SEM Tabs --------- */
+function renderSemAddAssignLead() {
+  let userOptions = users.filter(u => u.role === "user").map(u => `<option value="${u.username}">${capitalize(u.username)}</option>`).join('');
+  const fields = `
+    <form class="lead-form" onsubmit="semAddLead(event)">
+      <label>Event Name <input required name="eventName"></label>
+      <label>Organising Society <input required name="orgSociety"></label>
+      <label>Contact Person <input required name="contactPerson"></label>
+      <label>Phone No. <input required name="phone" maxlength="15"></label>
+      <label>Email <input type="email" required name="email"></label>
+      <label>Lead Stage
+        <div class="lead-stage">
+          ${["hot","wrm","cld","ni","nre","junk"].map(lv =>
+            `<label><input type="radio" name="leadStage" value="${lv}" required><span>${lv.toUpperCase()}</span></label>`
+          ).join('')}
+        </div>
+      </label>
+      <label>Remarks <textarea name="remarks"></textarea></label>
+      <label>Followup date/time <input type="datetime-local" required name="followup"></label>
+      <label>Assign to
+        <select required name="assignedTo">${userOptions}</select>
+      </label>
+      <button class="glass-btn" type="submit">Add & Assign Lead</button>
+    </form>
+  `;
+  document.getElementById('tab-content').innerHTML = `<div class="card">${fields}</div>`;
+}
+function semAddLead(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const leadId = generateId();
+  let lead = {
+    id: leadId,
+    eventName: fd.get("eventName"),
+    orgSociety: fd.get("orgSociety"),
+    contactPerson: fd.get("contactPerson"),
+    phone: fd.get("phone"),
+    email: fd.get("email"),
+    leadStage: fd.get("leadStage"),
+    remarks: fd.get("remarks"),
+    assignedTo: fd.get('assignedTo'),
+    dateAdded: new Date().toISOString(),
+  };
+  leads.push(lead);
+  followups.push({id: generateId(), user: fd.get('assignedTo'), leadId, leadEventName: lead.eventName, date: fd.get("followup"), status: "pending"});
+  showPopup("Lead Added & Assigned!");
+  renderDashboard();
 }
 
-// Make addFollowUpPrompt globally accessible
-window.addFollowUpPrompt = addFollowUpPrompt;
+function renderSemAllLeads() {
+  let usersList = ["all"].concat(users.filter(u => u.role === "user").map(u => u.username));
+  let filterUserOptions = usersList.map(u => `<option value="${u}">${capitalize(u)}</option>`).join('');
+  let today = (new Date()).toISOString().substring(0, 10);
+  let html = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;">
+        <div class="section-title">All Leads</div>
+        <select id="filter-user" class="glass" style="padding:0.6rem;">${filterUserOptions}</select>
+        <input id="filter-date" type="date" class="glass" style="padding:0.6rem;">
+        <input id="search-lead" class="search-lead" placeholder="Search lead...">
+        <label class="toggle-today">
+          <input type="checkbox" id="today-fl-toggle">Today's Follow-up
+        </label>
+        <button class="glass-btn" onclick="applyLeadFilter()">Filter</button>
+      </div>
+      <div style="overflow-x:auto;">
+      <table class="leads-table" id="all-leads-table">
+        <tr>
+          <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th>
+          <th>Email</th><th>Lead Stage</th><th>Remarks</th>
+          <th>Assigned To</th><th>Date Added</th>
+          <th>Edit</th>
+        </tr>
+      </table>
+      </div>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+  applyLeadFilter();
+  document.getElementById('search-lead').addEventListener('input', applyLeadFilter);
+  document.getElementById('today-fl-toggle').addEventListener('change', applyLeadFilter);
+}
+function applyLeadFilter() {
+  let uname = document.getElementById('filter-user').value;
+  let dt = document.getElementById('filter-date').value;
+  let q = (document.getElementById('search-lead') || {value:""}).value.trim().toLowerCase();
+  let onlyToday = (document.getElementById('today-fl-toggle') || {}).checked;
+  let data = leads;
+  if (uname && uname !== 'all') data = data.filter(l => l.assignedTo === uname);
+  if (dt) data = data.filter(l => l.dateAdded.substring(0,10) === dt);
+  if (q) data = data.filter(l =>
+    (l.eventName + l.contactPerson + l.phone + l.email + l.orgSociety + l.remarks).toLowerCase().includes(q)
+  );
+  if (onlyToday) {
+    let today = (new Date()).toISOString().substring(0,10);
+    let ids = new Set(followups.filter(f => f.date.split('T')[0] === today).map(f => f.leadId));
+    data = data.filter(l => ids.has(l.id));
+  }
+  let tb = document.getElementById('all-leads-table');
+  tb.innerHTML = `<tr>
+    <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th>
+    <th>Email</th><th>Lead Stage</th><th>Remarks</th>
+    <th>Assigned To</th><th>Date Added</th>
+    <th>Edit</th>
+  </tr>` +
+    data.map(l => {
+      let editable = (session_user.username === l.assignedTo);
+      return `<tr>
+        <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','eventName',this.innerText)">${l.eventName}</td>
+        <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','orgSociety',this.innerText)">${l.orgSociety}</td>
+        <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','contactPerson',this.innerText)">${l.contactPerson}</td>
+        <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','phone',this.innerText)">${l.phone}</td>
+        <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','email',this.innerText)">${l.email}</td>
+        <td>
+          ${editable ? `<select onchange="editLead('${l.id}','leadStage',this.value)">
+            ${["hot","wrm","cld","ni","nre","junk"].map(stage =>
+              `<option value="${stage}"${l.leadStage === stage ? ' selected' : ''}>${stage.toUpperCase()}</option>`
+            ).join('')}
+          </select>` : l.leadStage.toUpperCase()}
+        </td>
+        <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','remarks',this.innerText)">${l.remarks || ''}</td>
+        <td>${capitalize(l.assignedTo)}</td>
+        <td>${formatDateIST(l.dateAdded)}</td>
+        <td>${editable ? '<span style="color:#b04ae4;font-size:1.14em;">&#9998;</span>' : ''}</td>
+      </tr>`;
+    }).join('');
+}
 
-// End of JS
+function renderSemReport() {
+  let usersList = users.filter(u => u.role === "user");
+  const today = new Date().toISOString().substring(0, 10);
+  let html = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:1.5rem;">
+        <div class="section-title">Report (per user, for today)</div>
+        <input id="report-date" type="date" class="glass" style="padding:0.6rem;" value="${today}">
+        <button class="glass-btn" onclick="applyReportFilter()">Filter</button>
+      </div>
+      <table class="report-table" id="report-table">
+      <tr>
+        <th>User</th>
+        <th>No. of Leads</th><th>Follow-ups</th>
+      </tr>
+      ${usersList.map(u => {
+        const leadsToday = leads.filter(l => l.assignedTo === u.username && l.dateAdded.substring(0,10) === today).length;
+        const flToday = followups.filter(f => f.user === u.username && f.date.split('T')[0] === today).length;
+        return `<tr>
+          <td>${capitalize(u.username)}</td>
+          <td>${leadsToday}</td>
+          <td>${flToday}</td>
+        </tr>`;
+      }).join('')}
+      </table>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+}
+function applyReportFilter() {
+  let dt = document.getElementById('report-date').value;
+  let usersList = users.filter(u => u.role === "user");
+  let tb = document.getElementById('report-table');
+  tb.innerHTML = `<tr>
+    <th>User</th>
+    <th>No. of Leads</th><th>Follow-ups</th>
+  </tr>` +
+  usersList.map(u => {
+    const leadsToday = leads.filter(l => l.assignedTo === u.username && l.dateAdded.substring(0,10) === dt).length;
+    const flToday = followups.filter(f => f.user === u.username && f.date.split('T')[0] === dt).length;
+    return `<tr>
+      <td>${capitalize(u.username)}</td>
+      <td>${leadsToday}</td>
+      <td>${flToday}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* --- Developer Admin --- */
+function renderDevUsers() {
+  let html = `
+    <div class="card">
+      <div class="section-title">Admin: User Management</div>
+      <table class="report-table">
+      <tr><th>User</th><th>Role</th><th>Password (reset)</th></tr>
+      ${users.map((u,i) => `
+        <tr>
+          <td><input style="width:120px" value="${u.username}" onchange="devSetUsername(${i},this.value)"></td>
+          <td>${u.role}</td>
+          <td><input style="width:120px" type="password" value="${u.password}" onchange="devSetPassword(${i},this.value)"></td>
+        </tr>`).join('')}
+      </table>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+}
+function devSetUsername(idx, val) {
+  users[idx].username = val.trim().toLowerCase();
+  showPopup("Username changed.");
+}
+function devSetPassword(idx, val) {
+  users[idx].password = val;
+  showPopup("Password changed.");
+}
+
+/* Init */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('main-app').style.display = 'none';
+});
