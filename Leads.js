@@ -1,163 +1,419 @@
-<script>
-  // User credentials & roles
-  const users = {
-    'sushant': { password: 'sush@123', role: 'user' },
-    'gaurav': { password: 'gaurav@123', role: 'user' },
-    'yash': { password: 'yash@123', role: 'user' },
-    'shikha': { password: 'shikha@123', role: 'user' },
-    'tripti': { password: 'tripti@123', role: 'user' },
-    'anshi': { password: 'anshi@123', role: 'user' },
-    'sem':    { password: 'semops@123', role: 'sem' },
-    'developer': { password: 'dev041228', role: 'superadmin' }
-  };
-  let currentUser = null;
+/* --- Data (in-memory for demo only) --- */
+const users = [
+  {username:"sushant", password:"sush@123", role:"user"},
+  {username:"gaurav", password:"gaurav@123", role:"user"},
+  {username:"yash", password:"yash@123", role:"user"},
+  {username:"shikha", password:"shikha@123", role:"user"},
+  {username:"tripti", password:"tripti@123", role:"user"},
+  {username:"anshi", password:"anshi@123", role:"user"},
+  {username:"sem", password:"semops@123", role:"sem"},
+  {username:"developer", password:"dev041228", role:"developer"},
+];
 
-  // Utility function to show welcome/notification popups
-  function showPopup(msg) {
-    const popup = document.getElementById('welcomePopup');
-    popup.textContent = msg;
-    popup.style.display = 'block';
-    popup.style.opacity = '1';
-    setTimeout(() => { popup.style.opacity = '0'; }, 1100);
-    setTimeout(() => { popup.style.display = 'none'; }, 1450);
+let leads = [];
+let followups = [];
+let session_user = null;
+
+/* --- Helper Functions --- */
+// Show a popup message for 1 second
+function showPopup(msg) {
+  const popup = document.getElementById('popup');
+  popup.style.display = '';
+  document.getElementById('popup-content').textContent = msg;
+  setTimeout(() => { popup.style.display = 'none'; }, 1000);
+}
+// Format date in IST timezone, readable string
+function formatDateIST(date) {
+  const d = new Date(date);
+  return d.toLocaleString('en-IN', {timeZone:'Asia/Kolkata'});
+}
+// Generate random unique id (simple)
+function generateId() {
+  return Math.random().toString(36).substr(2, 9) + Date.now();
+}
+// Capitalize first letter
+function capitalize(str) {
+  return str.slice(0,1).toUpperCase() + str.slice(1);
+}
+
+/* --- Authentication & Routing --- */
+// Handle login form submission
+function login(e) {
+  e.preventDefault();
+  const uname = document.getElementById('username').value.trim().toLowerCase();
+  const pwd = document.getElementById('password').value;
+  const user = users.find(u => u.username === uname && u.password === pwd);
+  if (!user) {
+    showPopup("Incorrect username or password");
+    return;
+  }
+  session_user = {...user};
+  showPopup(`Welcome, ${capitalize(session_user.username)}!`);
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = '';
+  renderDashboard();
+}
+// Logout, reset UI
+function logout() {
+  session_user = null;
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('login-screen').style.display = '';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+}
+
+/* --- Dashboard Rendering Per Role --- */
+function renderDashboard() {
+  document.getElementById('user-label').innerText = capitalize(session_user.username);
+  let tabs = [];
+
+  if (session_user.role === 'user') {
+    tabs = [
+      {label: "User", fn: renderUserTab},
+      {label: "Add Lead", fn: renderAddLeadTab},
+      {label: "My Leads", fn: renderMyLeadsTab}
+    ];
+  } else if (session_user.role === 'sem') {
+    tabs = [
+      {label: "Add & Assign Lead", fn: renderSemAddAssignLead},
+      {label: "All Leads", fn: renderSemAllLeads},
+      {label: "Report", fn: renderSemReport}
+    ];
+  } else if (session_user.role === 'developer') {
+    tabs = [
+      {label: "Admin — Users", fn: renderDevUsers},
+      {label: "Admin — Leads", fn: renderSemAllLeads},
+      {label: "Admin — Report", fn: renderSemReport}
+    ];
   }
 
-  // Create tabs based on role
-  function buildTabs(role) {
-    let tabs = [];
-    if (role === 'user') {
-      tabs = [
-        { name: "User", id: "user" },
-        { name: "Add Lead", id: "addlead" },
-        { name: "My Leads", id: "myleads" }
-      ];
-    }
-    if (role === 'sem') {
-      tabs = [
-        { name: "Add and Assign Lead", id: "addassign" },
-        { name: "All Leads", id: "allleads" },
-        { name: "Report", id: "report" }
-      ];
-    }
-    if (role === 'superadmin') {
-      tabs = [
-        { name: "Admin Panel", id: "adminpanel" },
-        { name: "All Leads", id: "allleads" },
-        { name: "Report", id: "report" }
-      ];
-    }
-    return tabs;
-  }
-
-  // LocalStorage-backed database mock
-  let db = JSON.parse(localStorage.getItem('crmLeadsDB')) || {
-    leads: [],
-    followups: [],
-    usersMeta: {
-      sushant:{}, gaurav:{}, yash:{}, shikha:{}, tripti:{}, anshi:{}
-    }
-  };
-  function saveDB() {
-    localStorage.setItem('crmLeadsDB', JSON.stringify(db));
-  }
-
-  // Main app rendering
-  function renderApp(user) {
-    const main = document.getElementById('appMain');
-    document.getElementById('crmlogin').style.display = 'none';
-    main.style.display = '';
-    main.innerHTML = '';
-
-    const topBar = document.createElement('div');
-    topBar.className = 'top-bar';
-    topBar.innerHTML = `<span class="user-info">${user}</span>
-      <button class="logout-btn" onclick="logout()">Log Out</button>`;
-    main.appendChild(topBar);
-
-    const tabsArr = buildTabs(users[user].role);
-    const tabs = document.createElement('div');
-    tabs.className = "tabs";
-    tabsArr.forEach((tab, i) => {
-      const btn = document.createElement('button');
-      btn.className = 'tab' + (i===0 ? ' active':'');
-      btn.textContent = tab.name;
-      btn.onclick = () => selectTab(tab.id, tabs, main, user);
-      btn.tabIndex = 0;
-      btn.id = `tabbtn-${tab.id}`;
-      tabs.appendChild(btn);
-    });
-    main.appendChild(tabs);
-
-    const tabContent = document.createElement('div');
-    tabContent.className = 'tab-content';
-    tabContent.id = 'tabContent';
-    main.appendChild(tabContent);
-
-    selectTab(tabsArr[0].id, tabs, main, user);
-  }
-
-  function selectTab(tabid, tabsDiv, main, user) {
-    [...tabsDiv.children].forEach(t=>t.classList.remove('active'));
-    document.getElementById('tabbtn-'+tabid).classList.add('active');
-    renderTab(tabid, user);
-  }
-
-  function renderTab(tabid, user) {
-    const role = users[user].role;
-    const content = document.getElementById('tabContent');
-    content.innerHTML = '';
-
-    // Render tabs content by role and tab as detailed in previous code...
-    // (Includes User tabs, SEM tabs, Superadmin tabs logic)
-  }
-
-  // Function to add follow-up in My Leads (user role)
-  window.addFU = function(eventName) {
-    const date = prompt("Add followup for '"+eventName+"'. Enter date (yyyy-mm-dd):");
-    if(!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return alert('Invalid date');
-    db.followups.push({
-      lead: eventName,
-      date, owner: currentUser,
-      completed: false
-    });
-    saveDB();
-    showPopup('Followup added!');
-    renderTab('myleads', currentUser);
-  };
-
-  // Logout function
-  window.logout = function(){
-    document.getElementById('appMain').style.display = 'none';
-    document.getElementById('crmlogin').style.display = '';
-    currentUser = null;
-    document.getElementById('loginForm').reset();
-  };
-
-  // Login submission handling
-  document.getElementById('loginForm').onsubmit = function(e){
-    e.preventDefault();
-    const username = document.getElementById('userInput').value.trim().toLowerCase();
-    const pass = document.getElementById('passInput').value;
-    if(!users[username] || users[username].password !== pass) {
-      showPopup('Invalid credentials');
-      return;
-    }
-    currentUser = username;
-    showPopup(`Welcome ${username.charAt(0).toUpperCase()+username.slice(1)}!`);
-    setTimeout(()=>renderApp(username),1000);
-  };
-
-  // Keyboard navigation for tabs
-  window.addEventListener('keydown', function(e){
-    const m = document.getElementById('appMain');
-    if(m.style.display==='none') return;
-    let active = document.querySelector('.tab.active');
-    if(!active) return;
-    if(e.key==='ArrowRight' || e.key==='ArrowLeft'){
-      let tabs = Array.from(document.querySelectorAll('.tab'));
-      let idx = tabs.indexOf(active);
-      idx = (e.key==='ArrowRight') ? (idx+1)%tabs.length : (idx-1+tabs.length)%tabs.length;
-      tabs[idx].click();
-    }
+  // Render tab buttons
+  const tabbar = document.getElementById('tab-bar');
+  tabbar.innerHTML = '';
+  tabs.forEach((tab, i) => {
+    let div = document.createElement('div');
+    div.className = 'tab';
+    div.textContent = tab.label;
+    div.onclick = () => { selectTab(i); };
+    if (i === 0) div.classList.add('active');
+    tabbar.appendChild(div);
   });
-</script>
+  window.__currTabs = tabs;
+  selectTab(0);
+}
+function selectTab(idx) {
+  const tabs = document.querySelectorAll('.tab');
+  tabs.forEach((tab, i) => tab.classList.toggle('active', i === idx));
+  document.getElementById('tab-content').innerHTML = '';
+  setTimeout(() => { window.__currTabs[idx].fn(); }, 100);
+}
+
+/* --- User Role Tabs --- */
+function renderUserTab() {
+  // Leads assigned to current user
+  const userLeads = leads.filter(l => l.assignedTo === session_user.username);
+  const today = new Date().toISOString().substring(0, 10);
+
+  // Follow ups done today by user
+  const followupDone = followups.filter(f => f.user === session_user.username && f.date.split('T')[0] === today).length;
+
+  // Overdue follow ups
+  const overdue = followups.filter(f => f.user === session_user.username && f.status !== 'done' && new Date(f.date) < new Date());
+
+  // Followup reminders for today (pending)
+  const reminders = followups.filter(f => f.user === session_user.username && f.status !== 'done' && f.date.split('T')[0] === today);
+
+  document.getElementById('tab-content').innerHTML = `
+    <div class="card">
+      <div class="section-title">User Overview</div>
+      <div>Name: <b>${capitalize(session_user.username)}</b></div>
+      <div>Leads added: <b>${userLeads.length}</b></div>
+      <div>Follow-up done today: <b>${followupDone}</b></div>
+      <div>Overdue Follow-ups:</div>
+      <ul>${overdue.map(f => `<li>${f.leadEventName} &mdash; ${formatDateIST(f.date)}</li>`).join('') || '<li>(none)</li>'}</ul>
+      <div>Follow-up reminders for today:</div>
+      <ul>${reminders.map(f => `<li>${f.leadEventName} &mdash; ${formatDateIST(f.date)}</li>`).join('') || '<li>(none)</li>'}</ul>
+    </div>
+  `;
+}
+function renderAddLeadTab() {
+  const fields = `
+    <form class="lead-form" onsubmit="addLead(event)">
+      <label>Event Name <input required name="eventName"></label>
+      <label>Organising Society <input required name="orgSociety"></label>
+      <label>Contact Person <input required name="contactPerson"></label>
+      <label>Phone No. <input required name="phone" maxlength="15"></label>
+      <label>Email <input type="email" required name="email"></label>
+      <label>Lead Stage
+        <div class="lead-stage">
+          ${["hot","wrm","cld","ni","nre","junk"].map(lv =>
+            `<label><input type="radio" name="leadStage" value="${lv}" required><span>${lv.toUpperCase()}</span></label>`
+          ).join('')}
+        </div>
+      </label>
+      <label>Remarks <textarea name="remarks"></textarea></label>
+      <label>Followup date/time <input type="datetime-local" required name="followup"></label>
+      <button class="glass-btn" type="submit">Add Lead</button>
+    </form>
+  `;
+  document.getElementById('tab-content').innerHTML = `<div class="card">${fields}</div>`;
+}
+function addLead(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const leadId = generateId();
+  let lead = {
+    id: leadId,
+    eventName: fd.get("eventName"),
+    orgSociety: fd.get("orgSociety"),
+    contactPerson: fd.get("contactPerson"),
+    phone: fd.get("phone"),
+    email: fd.get("email"),
+    leadStage: fd.get("leadStage"),
+    remarks: fd.get("remarks"),
+    assignedTo: session_user.username,
+    dateAdded: new Date().toISOString(),
+  };
+  leads.push(lead);
+  // Add initial follow-up for this lead
+  followups.push({
+    id: generateId(),
+    user: session_user.username,
+    leadId,
+    leadEventName: lead.eventName,
+    date: fd.get("followup"),
+    status: "pending"
+  });
+  showPopup("Lead Added!");
+  renderDashboard();
+}
+function renderMyLeadsTab() {
+  const userLeads = leads.filter(l => l.assignedTo === session_user.username);
+  let html = `
+    <div class="card">
+      <div class="section-title">My Leads</div>
+      <table class="leads-table">
+      <tr>
+        <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th><th>Email</th>
+        <th>Lead Stage</th><th>Remarks</th><th>Date Added</th><th>Add Follow-up</th>
+      </tr>
+      ${userLeads.map(l =>
+        `<tr>
+          <td>${l.eventName}</td><td>${l.orgSociety}</td><td>${l.contactPerson}</td><td>${l.phone}</td>
+          <td>${l.email}</td><td>${l.leadStage}</td><td>${l.remarks||''}</td>
+          <td>${formatDateIST(l.dateAdded)}</td>
+          <td><button class="followup-btn" onclick="addFollowup('${l.id}','${l.eventName}')">+</button></td>
+        </tr>`
+      ).join('')}
+      </table>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+}
+// Prompt user to add follow-up datetime
+function addFollowup(leadId, eventName) {
+  const dt = prompt("Enter follow-up datetime (YYYY-MM-DDTHH:MM):");
+  if (dt && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dt)) {
+    followups.push({
+      id: generateId(),
+      user: session_user.username,
+      leadId,
+      leadEventName: eventName,
+      date: dt,
+      status: "pending"
+    });
+    showPopup("Follow-up Added!");
+    renderMyLeadsTab();
+  }
+}
+
+/* --- SEM Role Tabs --- */
+function renderSemAddAssignLead() {
+  let userOptions = users.filter(u => u.role === "user").map(u =>
+    `<option value="${u.username}">${capitalize(u.username)}</option>`
+  ).join('');
+  const fields = `
+    <form class="lead-form" onsubmit="semAddLead(event)">
+      <label>Event Name <input required name="eventName"></label>
+      <label>Organising Society <input required name="orgSociety"></label>
+      <label>Contact Person <input required name="contactPerson"></label>
+      <label>Phone No. <input required name="phone" maxlength="15"></label>
+      <label>Email <input type="email" required name="email"></label>
+      <label>Lead Stage
+        <div class="lead-stage">
+          ${["hot","wrm","cld","ni","nre","junk"].map(lv =>
+            `<label><input type="radio" name="leadStage" value="${lv}" required><span>${lv.toUpperCase()}</span></label>`
+          ).join('')}
+        </div>
+      </label>
+      <label>Remarks <textarea name="remarks"></textarea></label>
+      <label>Followup date/time <input type="datetime-local" required name="followup"></label>
+      <label>Assign to
+        <select required name="assignedTo">${userOptions}</select>
+      </label>
+      <button class="glass-btn" type="submit">Add & Assign Lead</button>
+    </form>
+  `;
+  document.getElementById('tab-content').innerHTML = `<div class="card">${fields}</div>`;
+}
+function semAddLead(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const leadId = generateId();
+  let lead = {
+    id: leadId,
+    eventName: fd.get("eventName"),
+    orgSociety: fd.get("orgSociety"),
+    contactPerson: fd.get("contactPerson"),
+    phone: fd.get("phone"),
+    email: fd.get("email"),
+    leadStage: fd.get("leadStage"),
+    remarks: fd.get("remarks"),
+    assignedTo: fd.get('assignedTo'),
+    dateAdded: new Date().toISOString(),
+  };
+  leads.push(lead);
+  followups.push({
+    id: generateId(),
+    user: fd.get('assignedTo'),
+    leadId,
+    leadEventName: lead.eventName,
+    date: fd.get("followup"),
+    status: "pending"
+  });
+  showPopup("Lead Added & Assigned!");
+  renderDashboard();
+}
+function renderSemAllLeads() {
+  let usersList = ["all"].concat(users.filter(u => u.role === "user").map(u => u.username));
+  let filterUserOptions = usersList.map(u =>
+    `<option value="${u}">${capitalize(u)}</option>`
+  ).join('');
+  let html = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:1.5rem;">
+        <div class="section-title">All Leads</div>
+        <select id="filter-user" class="glass" style="padding:0.6rem;">${filterUserOptions}</select>
+        <input id="filter-date" type="date" class="glass" style="padding:0.6rem;">
+        <button class="glass-btn" onclick="applyLeadFilter()">Filter</button>
+      </div>
+      <table class="leads-table" id="all-leads-table">
+      <tr>
+        <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th>
+        <th>Email</th><th>Lead Stage</th><th>Remarks</th>
+        <th>Assigned To</th><th>Date Added</th>
+      </tr>
+      ${leads.map(l =>
+        `<tr>
+          <td>${l.eventName}</td><td>${l.orgSociety}</td><td>${l.contactPerson}</td><td>${l.phone}</td>
+          <td>${l.email}</td><td>${l.leadStage}</td><td>${l.remarks||''}</td>
+          <td>${capitalize(l.assignedTo)}</td>
+          <td>${formatDateIST(l.dateAdded)}</td>
+        </tr>`
+      ).join('')}
+      </table>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+}
+function applyLeadFilter() {
+  let uname = document.getElementById('filter-user').value;
+  let dt = document.getElementById('filter-date').value;
+  let data = leads;
+  if (uname && uname !== 'all') data = data.filter(l => l.assignedTo === uname);
+  if (dt) data = data.filter(l => l.dateAdded.substring(0, 10) === dt);
+  let tb = document.getElementById('all-leads-table');
+  tb.innerHTML = `<tr>
+    <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th>
+    <th>Email</th><th>Lead Stage</th><th>Remarks</th>
+    <th>Assigned To</th><th>Date Added</th>
+    </tr>` +
+    data.map(l =>
+      `<tr>
+        <td>${l.eventName}</td><td>${l.orgSociety}</td><td>${l.contactPerson}</td><td>${l.phone}</td>
+        <td>${l.email}</td><td>${l.leadStage}</td><td>${l.remarks||''}</td>
+        <td>${capitalize(l.assignedTo)}</td>
+        <td>${formatDateIST(l.dateAdded)}</td>
+      </tr>`
+    ).join('');
+}
+function renderSemReport() {
+  let usersList = users.filter(u => u.role === "user");
+  const today = new Date().toISOString().substring(0, 10);
+  let html = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:1.5rem;">
+        <div class="section-title">Report (per user, for today)</div>
+        <input id="report-date" type="date" class="glass" style="padding:0.6rem;" value="${today}">
+        <button class="glass-btn" onclick="applyReportFilter()">Filter</button>
+      </div>
+      <table class="report-table" id="report-table">
+      <tr>
+        <th>User</th>
+        <th>No. of Leads</th><th>Follow-ups</th>
+      </tr>
+      ${usersList.map(u => {
+        const leadsToday = leads.filter(l => l.assignedTo === u.username && l.dateAdded.substring(0, 10) === today).length;
+        const flToday = followups.filter(f => f.user === u.username && f.date.split('T')[0] === today).length;
+        return `<tr>
+          <td>${capitalize(u.username)}</td>
+          <td>${leadsToday}</td>
+          <td>${flToday}</td>
+        </tr>`;
+      }).join('')}
+      </table>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+}
+function applyReportFilter() {
+  let dt = document.getElementById('report-date').value;
+  let usersList = users.filter(u => u.role === "user");
+  let tb = document.getElementById('report-table');
+  tb.innerHTML = `<tr>
+    <th>User</th>
+    <th>No. of Leads</th><th>Follow-ups</th>
+  </tr>` +
+  usersList.map(u => {
+    const leadsToday = leads.filter(l => l.assignedTo === u.username && l.dateAdded.substring(0, 10) === dt).length;
+    const flToday = followups.filter(f => f.user === u.username && f.date.split('T')[0] === dt).length;
+    return `<tr>
+      <td>${capitalize(u.username)}</td>
+      <td>${leadsToday}</td>
+      <td>${flToday}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* --- Developer (Super Admin) Tabs --- */
+function renderDevUsers() {
+  // Allow editing username and password (demo)
+  let html = `
+    <div class="card">
+      <div class="section-title">Admin: User Management</div>
+      <table class="report-table">
+      <tr><th>User</th><th>Role</th><th>Password (reset)</th></tr>
+      ${users.map((u, i) => `
+        <tr>
+          <td><input style="width:120px" value="${u.username}" onchange="devSetUsername(${i}, this.value)"></td>
+          <td>${u.role}</td>
+          <td><input style="width:120px" type="password" value="${u.password}" onchange="devSetPassword(${i}, this.value)"></td>
+        </tr>`).join('')}
+      </table>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+}
+function devSetUsername(idx, val) {
+  users[idx].username = val.trim().toLowerCase();
+  showPopup("Username changed.");
+}
+function devSetPassword(idx, val) {
+  users[idx].password = val;
+  showPopup("Password changed.");
+}
+
+/* --- Initialization --- */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('main-app').style.display = 'none';
+});
