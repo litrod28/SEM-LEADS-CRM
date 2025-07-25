@@ -15,15 +15,14 @@ function showPopup(msg) {
   const popup = document.getElementById('popup');
   popup.style.display = '';
   document.getElementById('popup-content').textContent = msg;
-  setTimeout(()=>{ popup.style.display='none'; }, 1000);
+  setTimeout(()=>{ popup.style.display='none'; }, 1010);
 }
 function formatDateIST(date) {
   const d = new Date(date);
   return d.toLocaleString('en-IN', {timeZone:'Asia/Kolkata'});
 }
 function generateId() { return Math.random().toString(36).substr(2,9) + Date.now(); }
-
-// Toggle UI (liquid glass inspired, with animation)
+// Toggle UI (glass animated)
 function crmToggle(el, checked, onChange) {
   el.setAttribute("data-checked", String(checked));
   el.onclick = () => { 
@@ -38,7 +37,7 @@ function login(e) {
   const uname = document.getElementById('username').value.trim().toLowerCase();
   const pwd = document.getElementById('password').value;
   const user = users.find(u=>u.username===uname && u.password===pwd);
-  if (!user) return showPopup("Incorrect username or password");
+  if (!user) { showPopup("Incorrect username or password"); return; }
   session_user = {...user};
   showPopup(`Welcome, ${capitalize(session_user.username)}!`);
   document.getElementById('login-screen').style.display='none';
@@ -53,7 +52,7 @@ function logout() {
   document.getElementById('password').value='';
 }
 
-// DASHBOARD/ROUTING
+// TAB ROUTING
 function renderDashboard() {
   document.getElementById('user-label').innerText = capitalize(session_user.username);
   let tabs=[];
@@ -91,7 +90,7 @@ function selectTab(idx) {
   setTimeout(()=>{ window.__currTabs[idx].fn(); }, 60);
 }
 
-// USER TAB (with mark done toggle)
+// USER TAB
 function renderUserTab() {
   const userLeads = leads.filter(l=>l.assignedTo===session_user.username);
   const today = new Date().toISOString().substring(0,10);
@@ -99,7 +98,6 @@ function renderUserTab() {
   const overdue = followups.filter(f=>
     f.user===session_user.username && f.status!=='done' && new Date(f.date)<new Date()
   );
-  // Reminders
   const reminders = followups.filter(f=>
     f.user===session_user.username && f.status!=='done' && f.date.split('T')[0]===today
   );
@@ -126,12 +124,10 @@ function renderUserTab() {
   </div>`;
   document.getElementById('tab-content').innerHTML = html;
   reminders.forEach(f=>{
-    // Use toggle with handler
     let el = document.getElementById(`toggle_fup_${f.id}`);
     crmToggle(el, false, (chkd)=>{ if(chkd) { f.status="done"; showPopup("Marked as done"); renderUserTab(); } });
   });
 }
-
 // ADD LEAD (User)
 function renderAddLeadTab() {
   const fields = `
@@ -175,7 +171,6 @@ function addLead(e) {
     dateAdded: new Date().toISOString(),
   };
   leads.push(lead);
-  // Add initial followup
   followups.push({
     id: generateId(), user: session_user.username,
     leadId, leadEventName: lead.eventName, date: fd.get("followup"), status: "pending"
@@ -183,10 +178,8 @@ function addLead(e) {
   showPopup("Lead Added!");
   renderDashboard();
 }
-
-// MY LEADS (with edit, search, date/time input, mark done on any followup)
+// MY LEADS (search, edit, timepicker, toggles)
 function renderMyLeadsTab() {
-  // Search box
   let html = `<div class="card">
     <div style="display:flex;align-items:center;gap:2rem;margin-bottom:12px;">
       <span class="section-title" style="font-size:1.11rem;">My Leads</span>
@@ -203,7 +196,6 @@ function renderMyLeadsTab() {
   let rows = leads.filter(l=>l.assignedTo===session_user.username &&
     (!query || Object.values(l).join(' ').toLowerCase().includes(query))
   ).map(l=>{
-    // Find followups for this lead (edit, date)
     const fups = followups.filter(f=>f.leadId===l.id && f.user===session_user.username)
     .map(f=>
       `<div style="margin-bottom:3px;">
@@ -212,7 +204,6 @@ function renderMyLeadsTab() {
         <div class="crm-toggle" data-checked="${f.status==='done'}" id="toggle_mytab_${f.id}" style="display:inline-block;vertical-align:middle;margin-left:5px;"><span></span></div>
       </div>`
     ).join('');
-    // All editable except username/dateAdded
     return `<tr>
       <td contenteditable="true" onblur="editLead('${l.id}','eventName',this.innerText)">${l.eventName}</td>
       <td contenteditable="true" onblur="editLead('${l.id}','orgSociety',this.innerText)">${l.orgSociety}</td>
@@ -232,15 +223,10 @@ function renderMyLeadsTab() {
   }).join('');
   html += (rows||'') + `</table></div></div>`;
   document.getElementById('tab-content').innerHTML = html;
-  // Wire up toggles
   leads.filter(l=>l.assignedTo===session_user.username)
-    .forEach(l=>{
-      followups.filter(f=>f.leadId===l.id && f.user===session_user.username)
-      .forEach(f=>crmToggle(document.getElementById(`toggle_mytab_${f.id}`), f.status==="done", (chkd)=>{f.status = chkd ? "done" : "pending"; showPopup("Updated");}));
-    });
+    .forEach(l=>{followups.filter(f=>f.leadId===l.id && f.user===session_user.username)
+    .forEach(f=>crmToggle(document.getElementById(`toggle_mytab_${f.id}`), f.status==="done", (chkd)=>{f.status = chkd ? "done" : "pending"; showPopup("Updated");}));});
 }
-
-// Actions in My Leads table
 function addLeadFollowup(leadId,eventName) {
   let dt = prompt("Enter follow-up datetime (YYYY-MM-DDTHH:MM):");
   if(dt && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dt)) {
@@ -266,9 +252,7 @@ function deleteLead(leadId) {
     showPopup("Deleted!");
   }
 }
-
-/* SEM and Developer sections remain as in previous version */
-// SEM
+// SEM and Developer (same structure, glass tabs)
 function renderSemAddAssignLead() {
   let userOptions = users.filter(u=>u.role==="user").map(u=>`<option value="${u.username}">${capitalize(u.username)}</option>`).join('');
   const fields = `
@@ -316,8 +300,7 @@ function semAddLead(e) {
   };
   leads.push(lead);
   followups.push({id: generateId(), user: fd.get('assignedTo'), leadId, leadEventName:lead.eventName, date: fd.get("followup"), status:"pending"});
-  showPopup("Lead Added & Assigned!");
-  renderDashboard();
+  showPopup("Lead Added & Assigned!"); renderDashboard();
 }
 function renderSemAllLeads() {
   let usersList = ["all"].concat(users.filter(u=>u.role==="user").map(u=>u.username));
@@ -417,7 +400,6 @@ function applyReportFilter() {
     </tr>`;
   }).join('');
 }
-// DEV
 function renderDevUsers() {
   let html = `
     <div class="card">
@@ -437,7 +419,6 @@ function renderDevUsers() {
 }
 function devSetUsername(idx,val) { users[idx].username = val.trim().toLowerCase(); showPopup("Username changed."); }
 function devSetPassword(idx,val) { users[idx].password = val; showPopup("Password changed."); }
-// Hide main app initially
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('main-app').style.display='none';
 });
