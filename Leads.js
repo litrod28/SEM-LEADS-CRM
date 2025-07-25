@@ -1,611 +1,455 @@
-// === Toast helper ===
-function showToast(message, success = true) {
-  let t = document.createElement('div');
-  t.className = 'snackbar';
-  t.style.background = success
-    ? 'linear-gradient(90deg,#29a746,#1da5b9 85%)'
-    : 'linear-gradient(95deg,#d83c2b,#ee9c63 85%)';
-  t.textContent = message;
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; }, 2200);
-  setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 2600);
+// ------- User and Role Data -------
+const USERS = [
+  {username:'sushant', password:'sush@123', role:'user'},
+  {username:'gaurav', password:'gaurav@123', role:'user'},
+  {username:'yash', password:'yash@123', role:'user'},
+  {username:'shikha', password:'shikha@123', role:'user'},
+  {username:'tripti', password:'tripti@123', role:'user'},
+  {username:'anshi', password:'anshi@123', role:'user'},
+  {username:'SEM', password:'semops@123', role:'sem'},
+  {username:'developer', password:'dev041228', role:'developer'}
+];
+const USERNAMES = USERS.map(u => u.username);
+
+function getData(key)  { return JSON.parse(localStorage.getItem(key)||'[]'); }
+function setData(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+// ------- App State -------
+let currentUser = null;
+let leadsDB = getData('leads');
+let followupsDB = getData('followups');
+
+// ------- Welcome Popup Utility -------
+function showPopup(msg) {
+  const pop=document.getElementById('popup');
+  pop.innerText=msg;
+  pop.classList.add('show');
+  setTimeout(()=>pop.classList.remove('show'),1000);
 }
 
-// Storage keys
-const USERS_KEY = 'semleads_users',
-      LEADS_KEY = 'semleads_leads',
-      SESSION_KEY = 'semleads_user';
-
-let currentUser = null,
-    leads = [],
-    addFollowupForIdx = null;
-
-// User list from localStorage or default
-function getUserList() {
-  let u = JSON.parse(localStorage.getItem(USERS_KEY) || 'null');
-  if (!u) {
-    u = [
-      { username: 'shikha', password: 'shikha@123' },
-      { username: 'tripti', password: 'tripti@123' },
-      { username: 'anshi', password: 'anshi@123' },
-      { username: 'SEM', password: 'sem@ops123' },
-      { username: 'sushant', password: 'sush@123' },
-      { username: 'gaurav', password: 'gaurav@123' },
-      { username: 'yash', password: 'yash@123' },
-      { username: 'developer', password: 'dev041228' },
-    ];
-    localStorage.setItem(USERS_KEY, JSON.stringify(u));
-  }
-  return u;
-}
-function setUserList(arr) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(arr));
-}
-
-// Leads from localStorage or default
-function getStoredLeads() {
-  let arr = JSON.parse(localStorage.getItem(LEADS_KEY) || '[]');
-  arr.forEach((lead) => {
-    if (!lead.followups) lead.followups = [];
-  });
-  window.leads = arr;
-  return arr;
-}
-function saveLeads() {
-  localStorage.setItem(LEADS_KEY, JSON.stringify(window.leads || []));
-}
-
-function isDeveloper() {
-  return currentUser === 'developer';
-}
-
-// Login flow
-function loginCheck(username, password) {
-  let list = getUserList();
-  return list.find(
-    (u) =>
-      u.username.trim().toLowerCase() === username.toLowerCase() && u.password === password
-  );
-}
-function showError(msg) {
-  document.getElementById('error').textContent = msg;
-}
-document.getElementById('loginUser').oninput = document.getElementById('loginPass').oninput = function () {
-  document.getElementById('error').textContent = '';
-};
-document.getElementById('loginForm').onsubmit = function (e) {
+// ------- Login Handling -------
+document.getElementById('login-form').onsubmit = function(e) {
   e.preventDefault();
-  let user = document.getElementById('loginUser').value.trim(),
-      pass = document.getElementById('loginPass').value;
-  let res = loginCheck(user, pass);
-  if (!res) return showError('Invalid username or password.');
-  localStorage.setItem(SESSION_KEY, user);
-  currentUser = user;
-  if (isDeveloper()) {
+  const uname = document.getElementById('login-username').value.trim();
+  const upass = document.getElementById('login-password').value.trim();
+  const u = USERS.find(x => x.username === uname && x.password === upass);
+  if (u) {
+    currentUser = { ...u };
     document.getElementById('login-page').style.display = 'none';
-    document.getElementById('superAdminPanel').style.display = '';
-    document.getElementById('devUsername').textContent = currentUser;
-    window.superadmin = new SuperAdmin();
-    return;
+    showPopup(`Welcome, ${uname}`);
+    setTimeout(loadMainApp, 950);
+  } else {
+    showPopup('Invalid Credentials');
   }
-  showDashboard();
-};
-function logout() {
-  localStorage.removeItem(SESSION_KEY);
-  location.reload();
 }
 
-// Dashboard & Tabs
-function setActiveTab(userTabs, activeTab) {
-  userTabs.querySelectorAll('button').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === activeTab);
-    btn.setAttribute('aria-selected', btn.dataset.tab === activeTab ? 'true' : 'false');
-  });
+// ------- Main App Logic -------
+function loadMainApp() {
+  leadsDB = getData('leads');
+  followupsDB = getData('followups');
+  const uname = currentUser.username;
+  let html = `
+    <div class="header-bar">
+      <div class="user-name">${uname.charAt(0).toUpperCase()+uname.slice(1)}</div>
+      <button onclick="logout()" class="logout-btn">Logout</button>
+    </div>
+  `;
+  if(currentUser.role === 'user'){
+    html+=renderTabs(['User','Add Lead','My Leads'], 'user');
+  } else if(currentUser.role === 'sem'){
+    html+=renderTabs(['Add & Assign Lead','All Leads','Report'], 'sem');
+  } else if(currentUser.role === 'developer'){
+    html+=renderTabs(['Add & Assign Lead','All Leads','Report','Admin'], 'developer');
+  }
+  document.getElementById('app-page').innerHTML = html;
+  document.getElementById('app-page').style.display = 'block';
+  handleTabSwitch(0);
 }
 
-function renderUserTabs() {
-  const userTabs = document.getElementById('user-tabs');
-  userTabs.innerHTML = '';
+// ------- Tab Rendering -------
+function renderTabs(tabNames, rkey){
+  return `
+  <div class="tab-nav">
+    ${tabNames.map((t,i)=>`<button type="button" class="nav-tab" onclick="handleTabSwitch(${i})">${t}</button>`).join('')}
+  </div>
+  <div id="tabs-panel"></div>
+  `;
+}
+window.handleTabSwitch = function(idx){
+  const tabs = [...document.querySelectorAll('.nav-tab')];
+  tabs.forEach((t,i)=>t.classList.toggle('selected',i===idx));
+  if(currentUser.role==='user'){
+    if(idx===0) loadUserHome();
+    else if(idx===1) renderAddLead(false);
+    else if(idx===2) loadMyLeads();
+  } else if(currentUser.role==='sem'){
+    if(idx===0) renderAddLead(true);
+    else if(idx===1) loadAllLeads();
+    else if(idx===2) renderReport();
+  } else if(currentUser.role==='developer'){
+    if(idx===0) renderAddLead(true);
+    else if(idx===1) loadAllLeads();
+    else if(idx===2) renderReport();
+    else if(idx===3) renderDeveloperPanel();
+  }
+}
 
-  let tabs = [
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'all-leads', label: 'All Leads' },
-  ];
-  tabs.forEach(({ id, label }) => {
-    let btn = document.createElement('button');
-    btn.textContent = label;
-    btn.dataset.tab = id;
-    btn.className = 'glass-tab-btn';
-    btn.setAttribute('role', 'tab');
-    btn.onclick = () => {
-      setActiveTab(userTabs, id);
-      renderTabContent(id);
+// ------- User Home Tab -------
+function loadUserHome(){
+  const uname = currentUser.username;
+  const myLeads = leadsDB.filter(l=>l.addedBy===uname);
+  const myFupsToday = followupsDB.filter(f=>f.by===uname && isToday(f.date));
+  const allFups = followupsDB.filter(f=>f.by===uname);
+  const overdueFups = allFups.filter(f=>!f.completed && new Date(f.date)<todayStart());
+  const todaysFups = allFups.filter(f=>!f.completed && isToday(f.date));
+  document.getElementById('tabs-panel').innerHTML = `
+    <div class="panel">
+      <div style="display:flex;gap:32px;margin-bottom:24px;">
+        <div><b>Leads Added:</b> ${myLeads.length}</div>
+        <div><b>Follow Ups Today:</b> ${myFupsToday.length}</div>
+      </div>
+      <div style="margin-bottom:19px;">
+        <b>Overdue Follow Ups</b>
+        <ul style="margin:9px 0 0 13px;">
+          ${overdueFups.length===0 ? '<li>None</li>' : overdueFups.map(f=>`<li>${showLead(f.leadId)} - ${niceDate(f.date)}</li>`).join('')}
+        </ul>
+      </div>
+      <div>
+        <b>Followup Reminders (Today)</b>
+        <ul style="margin:8px 0 0 13px;">
+          ${todaysFups.length===0? '<li>None</li>' : todaysFups.map(f=>`<li>${showLead(f.leadId)} - ${f.remarks || ''}</li>`).join('')}
+        </ul>
+      </div>
+    </div>`;
+}
+
+// ------- Add Lead Tab (for user/sem/dev) -------
+function renderAddLead(assignable){
+  const event = `
+    <div class="panel">
+      <form class="form-box" id="add-lead-form">
+        <input class="glass-glow" type="text" id="event-name" placeholder="Event Name" required>
+        <input class="glass-glow" type="text" id="org-society" placeholder="Organising Society" required>
+        <input class="glass-glow" type="text" id="contact-person" placeholder="Contact Person" required>
+        <input class="glass-glow" type="tel" id="phone" placeholder="Phone Number" required>
+        <input class="glass-glow" type="email" id="email" placeholder="Email" required>
+        <select class="glass-glow" required id="lead-stage">
+          <option value="">Lead Stage</option>
+          <option>hot</option>
+          <option>warm</option>
+          <option>cold</option>
+          <option>ni</option>
+          <option>nre</option>
+          <option>junk</option>
+        </select>
+        <textarea id="remarks" class="glass-glow" placeholder="Remarks" rows="2"></textarea>
+        <input type="date" class="glass-glow" id="lead-followup" required value="${todayStr()}">
+        ${assignable ? `
+        <select class="glass-glow" id="assign-to" required>
+          <option value="">Assign To</option>
+          ${USERS.filter(u=>u.role==='user').map(u=>`<option>${u.username}</option>`).join('')}
+        </select>
+        ` : ''}
+        <button class="primary-btn glass-glow" type="submit">Add Lead</button>
+      </form>
+    </div>
+    `;
+  document.getElementById('tabs-panel').innerHTML = event;
+  document.getElementById('add-lead-form').onsubmit = function(e){
+    e.preventDefault();
+    const values = {
+      event:document.getElementById('event-name').value,
+      society:document.getElementById('org-society').value,
+      person:document.getElementById('contact-person').value,
+      phone:document.getElementById('phone').value,
+      email:document.getElementById('email').value,
+      stage:document.getElementById('lead-stage').value,
+      remarks:document.getElementById('remarks').value,
+      followup:document.getElementById('lead-followup').value,
+      addedAt:Date.now(),
+      assignedTo: assignable ? document.getElementById('assign-to').value : currentUser.username,
+      addedBy: assignable ? currentUser.username : currentUser.username,
+      id: 'L'+Date.now()+''+Math.floor(Math.random()*100),
     };
-    userTabs.appendChild(btn);
-  });
-  // Activate "Dashboard" by default
-  setActiveTab(userTabs, 'dashboard');
-}
-
-function renderTabContent(tabId) {
-  const container = document.getElementById('tab-content-panels');
-  container.innerHTML = '';
-  if (tabId === 'dashboard') {
-    container.appendChild(createAddLeadPanel());
-    container.appendChild(createTodaysFollowupsPanel());
-    container.appendChild(createUserLeadsPanel());
-  } else if (tabId === 'all-leads') {
-    container.appendChild(createAllLeadsPanel());
-  }
-}
-
-// Add Lead Form Panel
-function createAddLeadPanel() {
-  const panel = document.createElement('section');
-  panel.className = 'glass-panel';
-  panel.setAttribute('aria-label', 'Add New Lead');
-
-  const h2 = document.createElement('h2');
-  h2.textContent = 'Add New Lead';
-  h2.className = 'tab-section-title';
-  panel.appendChild(h2);
-
-  const form = document.createElement('form');
-  form.id = 'leadForm';
-  form.autocomplete = 'off';
-
-  const fields = [
-    { label: 'Event Name', id: 'leadEventName', type: 'text', required: true },
-    { label: 'Email', id: 'leadEmail', type: 'email', required: true },
-    { label: 'Phone', id: 'leadPhone', type: 'text', required: true },
-    { label: 'Designation', id: 'leadDesignation', type: 'text', required: true },
-    { label: 'Organising Society', id: 'leadOrgSociety', type: 'text', required: true },
-  ];
-  fields.forEach(({ label, id, type, required }) => {
-    const lbl = document.createElement('label');
-    lbl.setAttribute('for', id);
-    lbl.textContent = label;
-    form.appendChild(lbl);
-
-    const input = document.createElement('input');
-    input.type = type;
-    input.id = id;
-    input.name = id;
-    if (required) input.required = true;
-    form.appendChild(input);
-  });
-
-  const labelCategory = document.createElement('label');
-  labelCategory.setAttribute('for', 'leadCategory');
-  labelCategory.textContent = 'Category';
-  form.appendChild(labelCategory);
-
-  const selectCategory = document.createElement('select');
-  selectCategory.id = 'leadCategory';
-  selectCategory.name = 'leadCategory';
-  selectCategory.required = true;
-
-  ['', 'Hot', 'Warm', 'Cold', 'NI', 'NRE'].forEach(cat => {
-    const option = document.createElement('option');
-    option.value = cat;
-    option.textContent = cat || 'Select';
-    selectCategory.appendChild(option);
-  });
-  form.appendChild(selectCategory);
-
-  const labelRemarks = document.createElement('label');
-  labelRemarks.setAttribute('for', 'leadRemarks');
-  labelRemarks.textContent = 'Remarks';
-  form.appendChild(labelRemarks);
-
-  const textareaRemarks = document.createElement('textarea');
-  textareaRemarks.id = 'leadRemarks';
-  textareaRemarks.name = 'leadRemarks';
-  textareaRemarks.rows = 2;
-  form.appendChild(textareaRemarks);
-
-  const submitBtn = document.createElement('button');
-  submitBtn.type = 'submit';
-  submitBtn.textContent = 'Add Lead';
-  form.appendChild(submitBtn);
-
-  form.onsubmit = leadFormSubmitHandler;
-
-  panel.appendChild(form);
-  return panel;
-}
-
-function leadFormSubmitHandler(e) {
-  e.preventDefault();
-  const form = e.target;
-
-  const eventName = form.leadEventName.value.trim();
-  const email = form.leadEmail.value.trim();
-  const phone = form.leadPhone.value.trim();
-  const designation = form.leadDesignation.value.trim();
-  const society = form.leadOrgSociety.value.trim();
-  const category = form.leadCategory.value;
-  const remarks = form.leadRemarks.value.trim();
-
-  if (!eventName || !email || !designation || !society || !phone || !category) {
-    showToast('Please fill all the fields!', false);
-    return;
-  }
-
-  if (!/^\S+@\S+\.\S+$/.test(email)) {
-    showToast('Invalid email', false);
-    return;
-  }
-  if (!/^\d{8,}$/.test(phone)) {
-    showToast('Enter valid phone number', false);
-    return;
-  }
-  if (leads.some(l => l.email.trim().toLowerCase() === email.toLowerCase())) {
-    showToast('Email already exists!', false);
-    return;
-  }
-
-  const now = new Date();
-  const istOffset = 5.5 * 60 * 60 * 1000; // ms
-  const addedOnIST = new Date(now.getTime() + istOffset - now.getTimezoneOffset() * 60000);
-  const newLead = {
-    eventName,
-    email,
-    phone,
-    designation,
-    organisingSociety: society,
-    category,
-    remarks,
-    addedBy: currentUser,
-    addedOn: addedOnIST.toISOString(),
-    followups: [],
-  };
-  leads.push(newLead);
-  saveLeads();
-  showToast('Lead added!');
-  form.reset();
-  renderTabContent('dashboard');
-  renderTodayFollowups();
-}
-
-function createTodaysFollowupsPanel() {
-  const panel = document.createElement('section');
-  panel.className = 'glass-panel';
-  panel.setAttribute('aria-label', "Today's Follow-ups");
-  panel.style.color = '#1d3e60';
-
-  const h2 = document.createElement('h2');
-  h2.textContent = "Today's Follow-ups";
-  h2.className = 'tab-section-title';
-  panel.appendChild(h2);
-
-  const container = document.createElement('div');
-  container.id = 'calendar-list';
-  panel.appendChild(container);
-
-  renderTodayFollowups(container);
-
-  return panel;
-}
-
-function renderTodayFollowups(container) {
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = now.getMonth();
-  const dd = now.getDate();
-  const todayStart = new Date(yyyy, mm, dd, 0, 0, 0).getTime();
-  const todayEnd = new Date(yyyy, mm, dd, 23, 59, 59).getTime();
-
-  container.innerHTML = '';
-  let html = '';
-
-  leads.forEach((lead, i) => {
-    lead.followups.forEach((f, idx) => {
-      const ts = new Date(f.datetime).getTime();
-      if (ts >= todayStart && ts <= todayEnd) {
-        html += `<div class="flex" style="align-items:center;margin-bottom:7px;">
-          <span class="tag ${lead.category.split(' ')[0]}" style="min-width:40px;">${lead.category}</span>
-          <b style="color:#0791c4;">${lead.eventName}</b>
-          <span style="margin-left:8px;">${new Date(f.datetime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-          <span style="margin-left:10px;">${f.remark}</span>
-          <span style="color:${f.done ? '#26b361' : '#d0021b'};font-size:.98em; margin-left:10px;">[${f.done ? 'Done' : 'Pending'}]</span>
-          <button type="button" onclick="markFollowupDone(${i},${idx})" style="margin-left:14px; font-size:13px;">Mark Done</button>
-        </div>`;
-      }
+    leadsDB.push(values);
+    setData('leads',leadsDB);
+    followupsDB.push({
+      id:'F'+Date.now()+''+Math.floor(Math.random()*100),
+      leadId: values.id,
+      by: values.assignedTo,
+      date: values.followup,
+      completed:false,
+      remarks:'Initial followup'
     });
-  });
-
-  container.innerHTML = html || '<em>No follow-ups scheduled for today.</em>';
-}
-
-window.markFollowupDone = (leadIdx, fIdx) => {
-  if (leads[leadIdx].followups[fIdx].done) return showToast('Already marked done.', false);
-  if (!confirm('Mark this follow-up as done?')) return;
-  leads[leadIdx].followups[fIdx].done = true;
-  saveLeads();
-  renderTodayFollowups(document.getElementById('calendar-list'));
-  showToast('Marked done.', true);
-};
-
-// User leads panel with follow-up controls
-function createUserLeadsPanel() {
-  const panel = document.createElement('section');
-  panel.className = 'glass-panel';
-  panel.setAttribute('aria-label', 'Your Leads');
-
-  const h2 = document.createElement('h2');
-  h2.textContent = 'Your Leads';
-  h2.className = 'tab-section-title';
-  panel.appendChild(h2);
-
-  const container = document.createElement('div');
-  container.id = 'userLeadsList';
-  panel.appendChild(container);
-
-  renderUserLeads(container);
-
-  return panel;
-}
-
-function renderUserLeads(container) {
-  let userLeads = leads.filter(l => (currentUser.toLowerCase() === 'sem') ? true : l.addedBy === currentUser);
-  if (userLeads.length === 0) {
-    container.innerHTML = '<em>No leads added yet.</em>';
-    return;
+    setData('followups',followupsDB);
+    showPopup('Lead Added');
+    setTimeout(()=>handleTabSwitch(assignable||currentUser.role==='sem' ? 1 : 2), 700);
   }
-  let html = `<table aria-label="Leads table">
-    <thead><tr>
-    <th>Event Name</th>
-    <th>Email</th>
-    <th>Phone</th>
-    <th>Designation</th>
-    <th>Society</th>
-    <th>Category</th>
-    <th>Remarks</th>
-    <th>Added On</th>
-    <th>Follow-ups</th>
-    </tr></thead><tbody>`;
-  userLeads.forEach((lead, i) => {
-    html += `<tr>
-      <td>${lead.eventName}</td>
-      <td>${lead.email}</td>
+}
+
+// ------- My Leads Tab (user) -------
+function loadMyLeads(){
+  const uname = currentUser.username;
+  const myLeads = leadsDB.filter(l=>l.assignedTo===uname);
+  let tbody = myLeads.map(lead=>{
+    return `<tr>
+      <td>${lead.event}</td>
+      <td>${lead.society}</td>
+      <td>${lead.person}</td>
       <td>${lead.phone}</td>
-      <td>${lead.designation}</td>
-      <td>${lead.organisingSociety}</td>
-      <td><span class="tag ${lead.category.split(' ')[0]}">${lead.category}</span></td>
-      <td>${lead.remarks || '-'}</td>
-      <td>${new Date(lead.addedOn).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
-      <td>
-        ${lead.followups?.length || 0}
-        <button type="button" onclick="openFollowupModal(${leads.indexOf(lead)})" aria-label="Add follow up to ${lead.eventName}">➕ Add</button>
-        <br>
-        ${(lead.followups || []).map((f, idx) => {
-          let canDelete = (currentUser.toLowerCase() === 'sem' || lead.addedBy === currentUser);
-          return `<div style="font-size:13px;padding:4px 0;">
-            📆 ${new Date(f.datetime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}<br>
-            <span style="color:#444;">${f.remark}</span>
-            <span style="color:${f.done ? '#26b361' : '#d0021b'};font-weight:bold;">[${f.done ? 'Done' : 'Pending'}]</span>
-            ${canDelete ? `<button type="button" onclick="deleteFollowup(${leads.indexOf(lead)}, ${idx})" title="Delete follow-up" style="font-size:11px; margin-left:6px;">🗑️</button>` : ''}
-          </div>`;
-        }).join('')}
-      </td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-
-  container.innerHTML = html;
-}
-
-window.deleteFollowup = function(leadIdx, fIdx) {
-  const lead = leads[leadIdx];
-  if (!lead) return;
-  if (!(currentUser.toLowerCase() === 'sem' || lead.addedBy === currentUser)) {
-    showToast('Not authorized', false);
-    return;
-  }
-  if (!confirm('Delete this follow-up?')) return;
-  lead.followups.splice(fIdx, 1);
-  saveLeads();
-  renderUserLeads(document.getElementById('userLeadsList'));
-  showToast('Follow-up deleted!');
-};
-
-// All Leads tab panel
-function createAllLeadsPanel() {
-  const panel = document.createElement('section');
-  panel.className = 'glass-panel';
-  panel.setAttribute('aria-label', 'All Leads');
-
-  const h2 = document.createElement('h2');
-  h2.textContent = 'All Leads';
-  h2.className = 'tab-section-title';
-  panel.appendChild(h2);
-
-  const searchInput = document.createElement('input');
-  searchInput.type = 'text';
-  searchInput.id = 'allSearchLead';
-  searchInput.placeholder = 'Search leads...';
-  searchInput.style.marginBottom = '10px';
-  searchInput.style.padding = '8px 10px';
-  searchInput.style.fontSize = '1rem';
-  searchInput.style.borderRadius = '9px';
-  panel.appendChild(searchInput);
-
-  const container = document.createElement('div');
-  container.id = 'allLeadsTableContainer';
-  panel.appendChild(container);
-
-  searchInput.addEventListener('input', renderAllLeadsTable);
-
-  renderAllLeadsTable();
-
-  return panel;
-}
-
-function renderAllLeadsTable() {
-  const q = document.getElementById('allSearchLead').value.trim().toLowerCase();
-  let container = document.getElementById('allLeadsTableContainer');
-  let visibleLeads = (currentUser && currentUser.toLowerCase() === 'sem')
-    ? leads
-    : leads.filter(l => l.addedBy && l.addedBy.toLowerCase() === currentUser.toLowerCase());
-
-  // Filter by search
-  visibleLeads = visibleLeads.filter(lead => {
-    return [lead.eventName, lead.email, lead.phone, lead.designation, lead.organisingSociety, lead.category, lead.remarks || '', lead.addedBy]
-      .join(' | ')
-      .toLowerCase()
-      .includes(q);
-  });
-
-  if (visibleLeads.length === 0) {
-    container.innerHTML = '<em>No matching leads found.</em>';
-    return;
-  }
-
-  let html = `<table aria-label="All Leads table">
-    <thead><tr>
-    <th>Event Name</th><th>Email</th><th>Phone</th><th>Designation</th>
-    <th>Society</th><th>Category</th><th>Remarks</th>
-    <th>Added By</th><th>Added On</th><th>Follow-ups</th>
-    </tr></thead><tbody>`;
-
-  visibleLeads.forEach((lead, i) => {
-    html += `<tr>
-      <td>${lead.eventName}</td>
       <td>${lead.email}</td>
-      <td>${lead.phone}</td>
-      <td>${lead.designation}</td>
-      <td>${lead.organisingSociety}</td>
-      <td><span class="tag ${lead.category.split(' ')[0]}">${lead.category}</span></td>
-      <td>${lead.remarks || ''}</td>
-      <td>${lead.addedBy || ''}</td>
-      <td>${new Date(lead.addedOn).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
-      <td>
-        ${lead.followups?.length || 0}
-        <button type="button" onclick="openFollowupModal(${leads.indexOf(lead)})" aria-label="Add follow up to ${lead.eventName}">➕ Add</button>
-        <br>
-        ${(lead.followups || []).map((f, idx) => {
-          let canDelete = (currentUser.toLowerCase() === 'sem');
-          return `<div style="font-size:13px;padding:4px 0;">
-            📆 ${new Date(f.datetime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
-            <br><span style="color:#444;">${f.remark}</span>
-            <span style="color:${f.done ? '#26b361' : '#d0021b'};font-weight:bold;">[${f.done ? 'Done' : 'Pending'}]</span>
-            ${canDelete ? `<button type="button" onclick="deleteFollowup(${leads.indexOf(lead)}, ${idx})" title="Delete follow-up" style="font-size:11px; margin-left:6px;">🗑️</button>` : ''}
-          </div>`;
-        }).join('')}
-      </td>
+      <td>${lead.stage}</td>
+      <td>${lead.remarks}</td>
+      <td>${niceDateTime(lead.addedAt)}</td>
+      <td><button onclick="addFollowup('${lead.id}')" class="primary-btn glass-glow" style="padding:5px 14px;font-size:0.93rem;">Add Follow Up</button></td>
     </tr>`;
+  }).join('');
+  if(!tbody) tbody = '<tr><td colspan="9" style="text-align:center;">No leads yet.</td></tr>';
+  document.getElementById('tabs-panel').innerHTML = `
+    <div class="panel" style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>Event</th><th>Society</th><th>Contact</th><th>Phone</th><th>Email</th><th>Stage</th><th>Remarks</th><th>Added</th><th>Follow Up</th>
+        </tr>
+      </thead>
+      <tbody>${tbody}</tbody>
+    </table>
+    </div>
+  `;
+}
+window.addFollowup = function(leadId){
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div class="glass-container" style="max-width:350px;">
+      <h2 style="font-size:1.2rem;margin-bottom:9px;">Add Follow Up</h2>
+      <form class="form-box" id="followup-form">
+        <input type="date" class="glass-glow" value="${todayStr()}" id="followup-date" required>
+        <textarea id="followup-remarks" class="glass-glow" placeholder="Remarks" rows="2"></textarea>
+        <button class="primary-btn glass-glow" type="submit">Submit</button>
+      </form>
+    </div>
+  `;
+  showModal(wrap.innerHTML, ()=>{
+    document.getElementById('followup-form').onsubmit = function(e){
+      e.preventDefault();
+      followupsDB.push({
+        id:'F'+Date.now()+''+Math.floor(Math.random()*100),
+        leadId,
+        by: currentUser.username,
+        date: document.getElementById('followup-date').value,
+        completed:false,
+        remarks: document.getElementById('followup-remarks').value
+      });
+      setData('followups',followupsDB);
+      document.body.removeChild(document.querySelector('.modal-overlay'));
+      showPopup('Follow up added');
+    }
   });
-
-  html += '</tbody></table>';
-
-  container.innerHTML = html;
 }
 
-// Follow-up modal handling
-const modalBg = document.getElementById('modalBg');
-const followupModal = document.getElementById('followupModal');
-
-window.openFollowupModal = function (idx) {
-  if (!leads[idx]) return;
-  addFollowupForIdx = idx;
-  document.getElementById('fLeadName').textContent = leads[idx].eventName;
-  document.getElementById('followupDate').value = '';
-  document.getElementById('followupRemark').value = '';
-  modalBg.classList.add('open');
-  followupModal.classList.add('open');
-  followupModal.setAttribute('aria-hidden', 'false');
-  followupModal.focus();
-};
-window.closeFollowupModal = function () {
-  modalBg.classList.remove('open');
-  followupModal.classList.remove('open');
-  followupModal.setAttribute('aria-hidden', 'true');
-};
-document.getElementById('modalBg').onclick = window.closeFollowupModal;
-
-document.getElementById('followupForm').onsubmit = function (e) {
-  e.preventDefault();
-  let dt = document.getElementById('followupDate').value,
-      remark = document.getElementById('followupRemark').value.trim();
-  if (!dt) return showToast('Date and time required!', false);
-  if (!remark) return showToast('Please enter remark!', false);
-  let lead = leads[addFollowupForIdx];
-  if (!lead) {
-    showToast('Lead not found!', false);
-    closeFollowupModal();
-    return;
-  }
-  // Authorization check: user can add followups only to their leads or SEM can add on all
-  if (currentUser.toLowerCase() !== 'sem' && lead.addedBy !== currentUser) {
-    showToast('Not authorized to add follow-up to this lead', false);
-    closeFollowupModal();
-    return;
-  }
-  lead.followups.push({ datetime: dt, remark: remark, done: false });
-  saveLeads();
-  closeFollowupModal();
-  renderTabContent(document.querySelector('#user-tabs button.active')?.dataset.tab || 'dashboard');
-  renderTodayFollowups(document.getElementById('calendar-list'));
-  showToast('Follow-up added!');
-};
-
-// Terms & Conditions modal code (unchanged)
-const termsModalBg = document.getElementById('termsModalBg');
-const termsModal = document.getElementById('termsModal');
-const showTermsLink = document.getElementById('showTermsLink');
-const closeTermsBtn = document.getElementById('closeTermsBtn');
-
-function openTermsModal() {
-  termsModalBg.classList.add('open');
-  termsModal.classList.add('open');
-  termsModal.setAttribute('aria-hidden', 'false');
-  termsModal.focus();
+// ------- All Leads Tab (sem/dev) -------
+function loadAllLeads(){
+  let filterUsers = USERS.filter(u=>u.role==='user');
+  let html = `
+    <div class="panel">
+      <div style="margin-bottom:14px;">
+        <select class="glass-glow" id="filter-user">
+          <option value="">Filter by User</option>
+          ${filterUsers.map(u=>`<option>${u.username}</option>`).join('')}
+        </select>
+        <input class="glass-glow" type="date" id="filter-date" value="">
+        <button class="primary-btn glass-glow" onclick="filterLeads()">Search</button>
+      </div>
+      <div style="overflow-x:auto">
+      <table id="all-leads-table">
+        <thead>
+          <tr>
+            <th>Event</th><th>Society</th><th>Contact</th><th>Phone</th><th>Email</th><th>Stage</th>
+            <th>Remarks</th><th>Follow up</th><th>Assigned To</th><th>Added At</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${renderLeadsTable(leadsDB)}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  `;
+  document.getElementById('tabs-panel').innerHTML = html;
 }
-function closeTermsModal() {
-  termsModalBg.classList.remove('open');
-  termsModal.classList.remove('open');
-  termsModal.setAttribute('aria-hidden', 'true');
+window.filterLeads = function(){
+  let valU = document.getElementById('filter-user').value;
+  let valD = document.getElementById('filter-date').value;
+  let filtered = leadsDB.filter(l=>
+    (!valU || l.assignedTo===valU) &&
+    (!valD || l.addedAt && niceDateStr(l.addedAt)==valD)
+  );
+  document.querySelector('#all-leads-table tbody').innerHTML = renderLeadsTable(filtered);
 }
-showTermsLink.addEventListener('click', (e) => {
-  e.preventDefault();
-  openTermsModal();
-});
-closeTermsBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  closeTermsModal();
-});
-termsModalBg.addEventListener('click', (e) => {
-  closeTermsModal();
-});
-
-// On page load
-window.onload = function () {
-  currentUser = localStorage.getItem(SESSION_KEY);
-  leads = getStoredLeads();
-  if (currentUser === 'developer') {
-    document.getElementById('login-page').style.display = 'none';
-    document.getElementById('superAdminPanel').style.display = '';
-    document.getElementById('devUsername').textContent = currentUser;
-    window.superadmin = new SuperAdmin(); // Please insert the full SuperAdmin class code separately
-    return;
-  }
-  if (currentUser) {
-    document.getElementById('login-page').style.display = 'none';
-    showDashboard();
-  }
-};
-
-function showDashboard() {
-  document.getElementById('welcome-popup').textContent = `Welcome, ${currentUser}!`;
-  document.getElementById('welcome-popup').style.display = 'block';
-  setTimeout(() => {
-    document.getElementById('welcome-popup').style.display = 'none';
-    document.getElementById('login-page').style.display = 'none';
-    document.getElementById('superAdminPanel').style.display = 'none';
-    document.getElementById('dashboard').style.display = '';
-    document.getElementById('userNameDash').textContent = currentUser;
-    renderUserTabs();
-    renderTabContent('dashboard');
-  }, 900);
+function renderLeadsTable(arr){
+  if(arr.length === 0) return `<tr><td colspan="10" style="text-align:center;">No leads found.</td></tr>`;
+  return arr.map(lead=>{
+    return `<tr>
+      <td>${lead.event}</td>
+      <td>${lead.society}</td>
+      <td>${lead.person}</td>
+      <td>${lead.phone}</td>
+      <td>${lead.email}</td>
+      <td>${lead.stage}</td>
+      <td>${lead.remarks}</td>
+      <td>${renderFollowups(lead.id)}</td>
+      <td>${lead.assignedTo}</td>
+      <td>${niceDateTime(lead.addedAt)}</td>
+    </tr>`;
+  }).join('');
 }
+function renderFollowups(leadId){
+  const fups = followupsDB.filter(f=>f.leadId===leadId);
+  if(!fups.length) return 'None';
+  return `<ul style="padding-left:13px;font-size:0.94rem;">
+    ${fups.map(f=>
+      `<li>
+        ${niceDate(f.date)}: ${f.remarks||''}
+        ${f.completed ? '<span style="color:green">✔️</span>' : ''}
+      </li>`
+    ).join('')}
+  </ul>`;
+}
+
+// ------- Report Tab (sem/dev) -------
+function renderReport(){
+  let dates = [...new Set(leadsDB.map(l=>niceDateStr(l.addedAt)))].sort().reverse();
+  let html = `
+    <div class="panel">
+    <select id="report-date" class="glass-glow" onchange="renderReport()">
+      <option value="">Select date</option>
+      ${dates.map(d=>`<option>${d}</option>`).join('')}
+    </select>
+    <table>
+    <thead>
+      <tr><th>User</th><th>No. of Leads</th><th>No. of Followups</th></tr>
+    </thead>
+    <tbody>
+    ${USERS.filter(u=>u.role==='user').map(u=>{
+      let leads = leadsDB.filter(l=>l.assignedTo===u.username);
+      let dateFilter = document.getElementById('report-date')?.value;
+      if(dateFilter) leads = leads.filter(l=>niceDateStr(l.addedAt)===dateFilter);
+      let fups = followupsDB.filter(f=>f.by===u.username);
+      if(dateFilter) fups = fups.filter(f=>niceDateStr(f.date)===dateFilter);
+      return `<tr>
+        <td>${u.username}</td>
+        <td>${leads.length}</td>
+        <td>${fups.length}</td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+    </table>
+    </div>
+  `;
+  document.getElementById('tabs-panel').innerHTML = html;
+}
+
+// ------- Developer/Admin Tab -------
+function renderDeveloperPanel(){
+  let html = `
+    <div class="panel">
+      <h2 style="font-size:1.1rem">Admin Control Panel</h2>
+      <div style="margin-bottom:22px;">
+        <b>All Users</b>
+        <table>
+          <thead><tr><th>User</th><th>Role</th><th>Password</th><th>Action</th></tr></thead>
+          <tbody>
+            ${USERS.map(u=>`
+            <tr>
+              <td contenteditable="true" onblur="adminUpdateUser('${u.username}','username',this.innerText)">${u.username}</td>
+              <td contenteditable="true" onblur="adminUpdateUser('${u.username}','role',this.innerText)">${u.role}</td>
+              <td contenteditable="true" onblur="adminUpdateUser('${u.username}','password',this.innerText)">${u.password}</td>
+              <td><button onclick="adminDeleteUser('${u.username}')" style="color:#d22c0c;background:none;border:none;cursor:pointer">Delete</button></td>
+            </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div><button class="primary-btn glass-glow" onclick="adminAddUser()">Add new user</button></div>
+    </div>
+  `;
+  document.getElementById('tabs-panel').innerHTML = html;
+}
+window.adminUpdateUser = function(username, field, val){
+  let idx = USERS.findIndex(u=>u.username===username);
+  if(idx>-1){
+    USERS[idx][field]=val;
+    showPopup('User updated');
+    renderDeveloperPanel();
+  }
+}
+window.adminDeleteUser = function(username){
+  let idx = USERS.findIndex(u=>u.username===username);
+  if(idx>-1){
+    USERS.splice(idx,1);
+    showPopup('User deleted');
+    renderDeveloperPanel();
+  }
+}
+window.adminAddUser = function(){
+  USERS.push({username:'newuser','password':'pass','role':'user'});
+  renderDeveloperPanel();
+}
+
+// ------- Modal Utility -------
+function showModal(html, cb){
+  const mask = document.createElement('div');
+  mask.className = "modal-overlay";
+  mask.style='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(30,60,80,0.21);z-index:1009;display:flex;align-items:center;justify-content:center;';
+  mask.innerHTML = `<div>${html}</div>`;
+  mask.onclick = function(e){ if(e.target===mask)document.body.removeChild(mask);}
+  document.body.appendChild(mask);
+  if(cb) setTimeout(cb,120);
+}
+
+// ------- Logout -------
+window.logout = function(){
+  currentUser = null;
+  document.getElementById('app-page').style.display = 'none';
+  document.getElementById('login-page').style.display = 'block';
+  document.getElementById('login-form').reset();
+}
+
+// ------- Helpers -------
+function niceDate(ts) {
+  if(!ts) return "";
+  const odate = typeof ts === 'string' && ts.length<=10 ? new Date(ts) : new Date(ts);
+  return odate.toLocaleDateString('en-IN',{month:'short',day:'2-digit'});
+}
+function niceDateStr(ts){
+  const d = typeof ts === 'number'? new Date(ts) : new Date(ts);
+  return d.toISOString().split('T')[0];
+}
+function niceDateTime(ts){
+  const d = new Date(ts);
+  const dstr = d.toLocaleDateString('en-IN',{month:'short',day:'2-digit'});
+  const tstr = d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  return dstr+' '+tstr;
+}
+function todayStr(){
+  const d=new Date();
+  return d.toISOString().split('T')[0];
+}
+function todayStart(){
+  let d = new Date();
+  d.setHours(0); d.setMinutes(0); d.setSeconds(0); d.setMilliseconds(0);
+  return d;
+}
+function isToday(date){
+  if(!date) return false;
+  let d = typeof date==='string'?new Date(date):new Date(date);
+  let now = new Date();
+  return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+}
+function showLead(leadId){
+  let l = leadsDB.find(l=>l.id===leadId);
+  return l ? l.event : leadId;
+}
+
+// ------- End of Script -------
