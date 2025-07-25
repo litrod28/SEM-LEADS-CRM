@@ -1,1164 +1,682 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>SEM Leads CRM – Glass Edition</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <title>CRM PORTAL SEM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* ==== Glass Edition CSS ==== */
+    /* ------- Liquid Glass UI Base Styles ------- */
     body {
+      margin: 0;
+      font-family: 'SF Pro Display', 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #ece9f7 0%, #e3f1fa 100%);
       min-height: 100vh;
-      background: linear-gradient(120deg, #6ec2f8 0%, #2c418e 100%);
-      margin: 0;
-      font-family: 'Inter', 'Roboto', Arial, sans-serif;
-      color: #fafeff;
       overflow-x: hidden;
-      user-select: none;
     }
-    .bg-glass {
-      background: rgba(51,94,252,0.13);
+    .glass-container {
+      background: rgba(255,255,255,0.22);
+      backdrop-filter: blur(22px) saturate(130%);
+      box-shadow: 0 4px 36px 0 rgba(72, 104, 224, 0.14),
+                  0 1.5px 4px 0 rgba(153,153,153,0.11) inset;
       border-radius: 36px;
-      box-shadow: 0 4px 40px 0 rgba(54,92,154,0.08), 0 1.5px 12px 0 rgba(48,125,227,0.13);
-      backdrop-filter: blur(18px) saturate(1.7);
-      -webkit-backdrop-filter: blur(18px) saturate(1.7);
+      border: 0.8px solid rgba(180,200,255,0.14);
+      margin: 30px auto;
+      padding: 40px 56px;
+      max-width: 550px;
+      animation: fadeInUp 1.3s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    #main-container {
-      max-width: 1090px;
-      margin: 42px auto 30px auto;
-      min-height: 600px;
-      padding: 0 20px;
-      box-sizing: border-box;
-      position: relative;
-      z-index: 1;
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(48px);}
+      100% { opacity:1; transform: translateY(0);}
     }
-    #welcome-popup {
-      display: none;
-      position: fixed;
-      left: 50vw; top: 18vh; transform: translate(-50%,0);
-      background: linear-gradient(120deg, #21d1dc 50%, #2571ea 150%);
-      color: #fff;
-      padding: 2.3rem 3.85rem;
-      border-radius: 26px;
-      font-size: 2.14rem;
-      box-shadow: 0 6px 32px #159be7bb;
-      z-index: 1010;
+    .glass-glow:hover,
+    .glass-glow:focus,
+    .nav-tab.selected {
+      box-shadow: 0 0 12px #94eaff, 0 0px 32px #73b0f9;
+      border-color: rgba(180,200,255,0.29);
+      transition: box-shadow 0.24s cubic-bezier(.71,1.77,.74,1.21);
+    }
+    h1 {
+      font-size: 2.1rem;
       text-align: center;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      animation: popin 1s;
+      background: linear-gradient(120deg, #2e7bf7 60%, #62ffe4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 32px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
     }
-    @keyframes popin {
-      0% {opacity: .3; transform: translate(-50%, -46px) scale(.85);}
-      88% {opacity: 1;}
-      100% {opacity: 1; transform: translate(-50%, 0) scale(1);}
-    }
-    #login-card {
-      width: 370px;
-      margin: 84px auto 0 auto;
-      padding: 32px 38px;
-    }
-    #login-card label {
-      letter-spacing: 0.02em;
-      margin: 18px 0 4.5px 0;
-      color: #93ccfc;
-      font-size: 1.02rem;
-      display: block;
-    }
-    #login-card input {
-      width: 100%;
-      border: none;
-      border-radius: 16px;
-      padding: 11px 16px;
-      background: rgba(255, 255, 255, 0.09);
-      color: #f0f9ff;
-      margin-bottom: 11px;
-      font-size: 1.03rem;
-      box-shadow: 0 1px 5px #23a2e218;
-      transition: box-shadow 0.2s, background 0.23s;
-      outline: none;
-    }
-    #login-card input:focus {
-      background: rgba(255, 255, 255, 0.19);
-      box-shadow: 0 0 0 3px #82bcfecc;
-    }
-    #login-card button {
-      width: 100%;
-      margin: 19px 0 5px 0;
-      border: none;
-      border-radius: 14px;
-      padding: 13px;
-      background: linear-gradient(88deg, #458ef5 75%, #3be3f6 120%);
-      color: #fff;
-      font-size: 1.13rem;
-      font-weight: 700;
-      letter-spacing: 0.051em;
-      box-shadow: 0 2.5px 16px #1498;
-      cursor: pointer;
-      transition: background 0.18s, box-shadow 0.16s;
-    }
-    #login-card button:hover {
-      background: linear-gradient(90deg, #399bfd 64%, #18f6bd 120%);
-      box-shadow: 0 5px 30px #52befa77;
-    }
-    #login-card #error {
-      min-height: 1.6em;
-      color: #ffc2bb;
-      font-size: 1.03em;
-      letter-spacing: 0.02em;
-      margin-bottom: 10px;
-    }
-    .glass-tabs-bar {
+    /* --- Login Form UI --- */
+    .form-box {
       display: flex;
+      flex-direction: column;
       gap: 18px;
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 20px 20px 0 0;
-      margin-top: 18px;
-      margin-bottom: 0;
-      padding: 14px 24px 0 18px;
-      position: relative;
-      overflow-x: auto;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,0.3) transparent;
     }
-    .glass-tabs-bar::-webkit-scrollbar { height: 7px; }
-    .glass-tabs-bar::-webkit-scrollbar-thumb {
-      background-color: rgba(255,255,255,0.3);
-      border-radius: 7px;
-    }
-    .glass-tab-btn {
+    .form-box input, .form-box select, .form-box textarea {
+      background: rgba(255,255,255,0.42);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      border-radius: 16px;
       border: none;
-      background: none;
-      color: #b2d7fa;
-      font-size: 1.07rem;
-      font-weight: 600;
-      letter-spacing: 0.01em;
-      border-radius: 10px 10px 0 0;
-      padding: 10px 26px;
-      margin: 0;
-      transition: color 0.14s, background 0.16s;
       outline: none;
+      font-size: 1.04rem;
+      box-shadow: 0 2px 12px 0 rgba(66, 78, 104, 0.09) inset;
+      transition: box-shadow 0.2s, background 0.2s;
+    }
+    .form-box input:focus, .form-box textarea:focus, .form-box select:focus {
+      box-shadow: 0 0 0 2px #acf5fa;
+      background: rgba(242,252,255,0.66);
+    }
+    .primary-btn {
+      background: linear-gradient(90deg, #45e1f2 16%, #2980fa 100%);
+      color: #fff;
+      font-weight: bold;
+      padding: 12px 3vw;
+      border-radius: 18px;
+      border: 0;
       cursor: pointer;
-      white-space: nowrap;
-      flex-shrink: 0;
-      user-select: none;
+      font-size: 1.08rem;
+      box-shadow: 0 2px 12px 0 #b3effd96;
+      transition: background 0.18s, box-shadow 0.17s;
     }
-    .glass-tab-btn.active,
-    .glass-tab-btn:focus {
-      color: #1fb1ef;
-      background: rgba(255, 255, 255, 0.14);
-      box-shadow: 0 4px 18px #1db3ff11;
+    .primary-btn:hover {
+      background: linear-gradient(92deg,#1f92fc 40%,#22ddd7 90%);
+      box-shadow: 0 4px 16px #75c8fada;
     }
-    .glass-tab-btn:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.10);
-    }
-    .glass-panel {
-      padding: 32px 28px;
-      background: rgba(255, 255, 255, 0.11);
-      box-shadow: 0 6.5px 30px #55cffb11;
-      border-radius: 26px;
-      margin-top: 4px;
-      margin-bottom: 26px;
-      transition: background 0.18s;
-      min-height: 180px;
-      color: #1862b6;
-      overflow-wrap: break-word;
-    }
-    button.secondary {
-      background: linear-gradient(90deg, #f7be37 75%, #e9ad28 100%);
-      color: #fff;
+
+    /* Welcome Popup */
+    .welcome-popup {
+      position: fixed; left:50%; top:20%; transform:translateX(-50%);
+      min-width: 260px;
+      background: rgba(255,255,255,0.69);
+      backdrop-filter: blur(24px);
+      border-radius: 22px; box-shadow: 0 4px 20px #0404061c;
+      padding: 36px 42px;
+      font-size: 1.24rem;
       font-weight: 600;
+      color:#2991ef;
+      text-align: center;
+      z-index: 888;
+      pointer-events:none;
+      opacity: 0;
+      transition: opacity 0.65s;
+    }
+    .welcome-popup.show {
+      opacity:1;
+      pointer-events:all;
+      animation: popAnim 1.15s cubic-bezier(.31,.97,.78,1.12);
+    }
+    @keyframes popAnim {
+      0% {opacity:0; transform: translate(-50%,40%) scale(0.75);}
+      45% {opacity:1; transform: translate(-50%,0) scale(1.1);}
+      100% {opacity:1; transform: translate(-50%,0) scale(1);}
+    }
+
+    /* Tab navigation & Panels */
+    .tab-nav {
+      display: flex;
+      gap: 22px;
+      margin-bottom: 30px;
+      justify-content: flex-start;
+    }
+    .nav-tab {
+      background: rgba(225,253,255,0.46);
+      color:#1e66f1;
       border: none;
-      border-radius: 6px;
-      padding: 9px 20px;
+      border-radius: 16px 16px 0 0;
+      padding: 10px 32px 12px 32px;
+      font-size: 1.08rem;
+      font-weight: 600;
+      margin-right:0;
       cursor: pointer;
-      margin-top: 18px;
-      user-select: none;
+      margin-bottom:-4px;
+      position:relative;
+      z-index:2;
+      transition: box-shadow 0.25s, color 0.12s;
     }
-    button.secondary:hover {
-      background: linear-gradient(90deg, #ebad23 75%, #d59e1c 100%);
+    .nav-tab.selected {
+      background: #fff;
+      color: #0a2373;
     }
-    button {
-      cursor: pointer;
+    .panel {
+      background: rgba(253,255,255,0.88);
+      border-radius: 0 0 24px 24px;
+      box-shadow: 0 1.5px 4px 0 #a9d3fa1e;
+      padding: 34px 19px 21px 13px;
+      animation: fadeInUp 1.1s cubic-bezier(.52,1.27,.44,1.22);
+      min-height:340px;
+    }
+    /* Header, Logout and User Display */
+    .header-bar {
+      width:100%; display:flex; justify-content:space-between; align-items:center;
+      padding-bottom:12px; margin-bottom:16px;
+    }
+    .user-name {
+      color:#1f8cff; font-weight:700; letter-spacing:1px; font-size: 1.1rem;
+      background:rgba(225,255,255,0.48);
       border-radius: 14px;
-      border: none;
-      font-weight: 600;
-      user-select: none;
-      transition: background 0.2s ease;
+      padding:6px 14px;
+      box-shadow:0 4px 12px #aaf0fac2;
     }
-    button:active {
-      transform: scale(0.96);
+    .logout-btn {
+      border:none;background:rgba(255,108,108,0.19); color:#f22; border-radius:13px;
+      letter-spacing:0.8px;font-size:1rem;font-weight:500;
+      margin-left:21px;padding:7px 18px;cursor:pointer;
+      transition: background 0.17s;
     }
+    .logout-btn:hover {background:#ffd2d2;color:#b61e1e;}
+
+    /* --- Data Tables --- */
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: rgba(255,255,255,0.09);
-      font-size: 1rem;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 5px 26px #2e8eff2f;
-      color: #154a75;
+      width:97%;
+      border-collapse:collapse;
+      background:rgba(255,255,255,0.76);
+      margin: 14px auto 0 auto;
     }
     th, td {
-      border: 1px solid #8ec8ff66;
-      padding: 10px 8px;
+      padding: 9px 15px;
+      border-bottom:1.5px solid #e6f0f8;
       text-align: left;
-      vertical-align: middle;
+      font-size: 1.01rem;
     }
     th {
-      background: #2389fe33;
-      color: #eafcff;
-      font-weight: 700;
-      letter-spacing: 0.5px;
+      background: linear-gradient(87deg, #e8fafd 64%, #e9f2ff 100%);
+      color:#186eda;font-weight:600;letter-spacing:0.5px;
     }
-    tr:hover {
-      background: rgba(99,156,255,0.12);
-      cursor: default;
+    tr:last-child td { border-bottom: none;}
+    /* Toggle/Field glow on hover */
+    input:hover, select:hover, textarea:hover, .glass-glow:focus {
+      box-shadow: 0 0 14px #85e5ff;
+      background:rgba(248,255,255,0.72);
     }
-    .tag {
-      display: inline-block;
-      font-size: 14px;
-      padding: 3px 14px;
-      border-radius: 18px;
-      color: #fff;
-      font-weight: 500;
-      user-select: none;
-    }
-    .Hot { background: #ff523c; }
-    .Warm { background: #f7b228; }
-    .Cold { background: #1da5b9; }
-    .NI { background: #888; }
-    .NRE { background: #b322a6; }
-    input, select, textarea {
-      width: 100%;
-      margin-top: 6px;
-      font-size: 1rem;
-      padding: 8px 10px;
-      margin-bottom: 14px;
-      border-radius: 9px;
-      border: 1.5px solid #bbd9ff33;
-      background: rgba(255,255,255,0.17);
-      color: #fff;
-      box-sizing: border-box;
-      transition: border 0.2s, box-shadow 0.3s;
-      font-family: 'Inter', sans-serif;
-    }
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #1973eb;
-      box-shadow: 0 3px 12px #1b72f633;
-      background: rgba(255,255,255,0.25);
-      color: #eef4fb;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 55px;
-      max-height: 160px;
-    }
-    label {
-      font-weight: 600;
-      color: #bbdefbcc;
-      user-select: none;
-    }
-    .msg-input {
-      width: 70%;
-      margin-right: 8px;
-      border-radius: 8px;
-      border: 1.5px solid #c3e7faaa;
-      padding: 8px 12px;
-      font-size: 1rem;
-      font-family: 'Inter', sans-serif;
-      color: #073766;
-    }
-    .flex {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-    .snackbar {
-      position: fixed;
-      left: 50vw;
-      bottom: 38px;
-      transform: translateX(-50%);
-      background: linear-gradient(90deg, #29a746, #1da5b9 85%);
-      color: #fff;
-      padding: 16px 30px;
-      font-size: 1.1rem;
-      border-radius: 18px;
-      box-shadow: 0 6px 22px #24a7;
-      z-index: 9999;
-      opacity: 1;
-      animation: snackfadein 0.5s, snackfadeout 0.7s 1.6s forwards;
-      user-select: none;
-    }
-    @keyframes snackfadein {
-      from { opacity: 0; bottom: 15px; }
-      to { opacity: 1; bottom: 38px; }
-    }
-    @keyframes snackfadeout {
-      from { opacity: 1; }
-      to { opacity: 0; }
-    }
-    .modal-bg {
-      display: none;
-      position: fixed;
-      left: 0; top: 0; right: 0; bottom: 0;
-      background: rgba(25, 40, 80, 0.75);
-      z-index: 1050;
-      backdrop-filter: blur(6px);
-    }
-    .modal-bg.open { display: block; }
-    .modal {
-      display: none;
-      position: fixed;
-      left: 50vw;
-      top: 15vh;
-      transform: translate(-50%, 0);
-      background: rgba(255,255,255,0.11);
-      backdrop-filter: blur(14px) saturate(1.8);
-      -webkit-backdrop-filter: blur(14px) saturate(1.8);
-      border-radius: 23px;
-      box-shadow: 0 9px 50px #2a8fffaa;
-      padding: 28px 36px 24px 32px;
-      color: #1862b6;
-      max-width: 520px;
-      max-height: 80vh;
-      overflow-y: auto;
-      z-index: 1100;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.95rem;
-      line-height: 1.3rem;
-      user-select: text;
-    }
-    .modal.open {
-      display: block;
-      animation: popin 0.39s ease forwards;
-    }
-    .modal h2,
-    .modal h3 {
-      margin-top: 0;
-      color: #1973eb;
-    }
-    .modal .close-btn {
-      position: absolute;
-      top: 18px;
-      right: 20px;
-      background: transparent;
-      border: none;
-      font-size: 1.9em;
-      cursor: pointer;
-      color: #888;
-      font-weight: bold;
-      line-height: 0.7;
-      user-select: none;
-    }
-    .modal form button {
-      margin-top: 10px;
-      font-weight: 700;
-      border-radius: 14px;
-      padding: 9px 24px;
-      font-size: 1rem;
-      background: #2377ecdd;
-      color: #eef6ff;
-      border: none;
-      cursor: pointer;
-      transition: background 0.24s;
-    }
-    .modal form button:hover {
-      background: #1f68d9dd;
-    }
-    #terms-text {
-      font-size: 0.9rem;
-      color: #b4d5ffcc;
-      margin-top: 18px;
-      user-select: none;
-      max-width: 360px;
-      line-height: 1.35;
-    }
-    #terms-text a {
-      color: #8eccff;
-      cursor: pointer;
-      text-decoration: underline;
-      user-select: text;
-    }
-    @media (max-width: 780px) {
-      #main-container {
-        max-width: 95vw;
-        min-height: 0;
-      }
-      #login-card {
-        width: 95vw;
-        margin-top: 14vw;
-      }
-      .glass-panel {
-        padding: 20px 16px;
-      }
-      .modal {
-        max-width: 90vw;
-        max-height: 75vh;
-        padding: 20px 18px;
-      }
-    }
-    @media (max-width: 440px) {
-      .glass-tab-btn {
-        padding: 7px 14px;
-        font-size: 0.95rem;
-      }
+    /* Mobile responsiveness */
+    @media (max-width: 700px) {
+      .glass-container { padding: 8vw 4vw; max-width:97vw;}
+      .tab-nav { gap:8px;}
+      .nav-tab {padding:10px 10px;}
     }
   </style>
 </head>
 <body>
-
-  <div id="welcome-popup" aria-live="polite"></div>
-
-  <div id="main-container">
-
-    <!-- LOGIN PAGE -->
+  <div id="popup" class="welcome-popup"></div>
+  <div class="glass-container" id="main-container">
+    <h1>CRM PORTAL SEM</h1>
     <div id="login-page">
-      <div id="login-card" class="bg-glass" role="main" aria-label="Login to SEM Leads CRM">
-        <h2 style="text-align:center;color:#fff;font-size:2.02rem;letter-spacing:0.02em;">SEM Leads Login</h2>
-        <div id="error" role="alert" aria-live="assertive"></div>
-        <form id="loginForm" autocomplete="off" style="margin-top:30px;">
-          <label for="loginUser">Username</label>
-          <input type="text" id="loginUser" autocomplete="username" required aria-required="true" aria-describedby="loginUserHelp" />
-          <label for="loginPass">Password</label>
-          <input type="password" id="loginPass" autocomplete="current-password" required aria-required="true" />
-          <button type="submit" aria-label="Log in to the system">Login</button>
-        </form>
-        <div id="terms-text">
-          By logging in you are agreeing to our
-          <a href="#" id="showTermsLink" role="button" tabindex="0">terms and conditions</a>.
-        </div>
-      </div>
+      <form class="form-box" id="login-form" autocomplete="off">
+        <input class="glass-glow" type="text" id="login-username" placeholder="User Name" required autofocus>
+        <input class="glass-glow" type="password" id="login-password" placeholder="Password" required>
+        <button class="primary-btn glass-glow" type="submit">Login</button>
+      </form>
     </div>
-
-    <!-- DASHBOARD -->
-    <div id="dashboard" style="display:none; color:#e9f3ff;" role="main" aria-label="Dashboard">
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:30px 0 0 0;">
-        <div>
-          <span style="font-size:2.3rem; font-weight:700; color:#f1fdff; letter-spacing:0.01em;">SEM Leads CRM</span>
-        </div>
-        <div style="font-size:1.15rem; color:#74d2ff; text-align:right; margin-right:16px;">
-          Welcome, <span id="userNameDash" aria-live="polite" aria-atomic="true"></span>
-        </div>
-        <button
-          onclick="logout()"
-          style="margin-left:10px; background:linear-gradient(95deg,#fe6c48 70%,#fbc97c 110%); color:white; border-radius:10px; border:none; padding:10px 24px 11px 24px; font-weight:700; cursor:pointer;"
-          aria-label="Logout user"
-        >
-          Logout
-        </button>
-      </div>
-
-      <!-- USER TABS: Dashboard, All Leads -->
-      <div id="user-tabs" class="glass-tabs-bar" style="margin-top:28px;" role="tablist" aria-label="User Tabs"></div>
-
-      <!-- TAB CONTENT -->
-      <div id="tab-content-panels" style="margin-top:0;"></div>
-    </div>
-
-    <!-- SUPER ADMIN PANEL -->
-    <div id="superAdminPanel" class="bg-glass" style="display:none; padding: 24px 28px 28px 28px; border-radius: 30px; margin-top: 40px;" role="region" aria-label="Super Admin Panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
-        <b style="font-size:1.20em; color:#69a9da;">Super Admin Panel (<span id="devUsername" aria-live="polite"></span>)</b>
-        <button
-          onclick="logout()"
-          style="
-            background: #f75c5c;
-            border: none;
-            color: #fff;
-            padding: 8px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 700;
-            user-select: none;
-          "
-          aria-label="Logout from Super Admin Panel"
-        >
-          Logout
-        </button>
-      </div>
-
-      <div class="super-tabs" id="superTabs" role="tablist" aria-label="User Tabs in Super Admin"></div>
-
-      <div style="margin-bottom:20px;">
-        <button onclick="superadmin.showUserAddBox()" class="secondary" aria-label="Add new user">+ Add New User</button>
-      </div>
-
-      <div id="superPanelBody" aria-live="polite"></div>
-      <div><b>All Users &mdash; edit / delete below:</b></div>
-      <div id="userManageTable" style="margin-top:12px;"></div>
-    </div>
+    <div id="app-page" style="display:none"></div>
   </div>
-
-  <!-- Modals -->
-
-  <!-- Terms & Conditions Modal -->
-  <div id="termsModalBg" class="modal-bg" tabindex="-1" aria-hidden="true"></div>
-  <div id="termsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="termsTitle" tabindex="-1">
-    <button aria-label="Close terms and conditions" class="close-btn" id="closeTermsBtn">&times;</button>
-    <h2 id="termsTitle">Terms and Conditions</h2>
-    <p><strong>Ownership and Rights:</strong><br>
-      Sushant Kumar is the rightful and exclusive owner of this website and all its content, design, and code.
-      He reserves full rights to manage, modify, or discontinue the service at any time without prior notice.</p>
-    <p><strong>Use of Data:</strong><br>
-      By using this website and logging in, you agree that Sushant Kumar may collect, store, and use your data,
-      including personal information and leads, in any manner deemed necessary. This includes but is not limited to
-      data analysis, marketing, improvement of services, or sharing with partners for legitimate purposes.</p>
-    <p><strong>User Responsibilities:</strong><br>
-      Users must provide accurate information and must not violate laws or ethical standards while using this service.
-      Unauthorized access, data manipulation, or harmful activities are strictly prohibited and may result in legal actions.</p>
-    <p><strong>Disclaimer:</strong><br>
-      Although reasonable care is taken to provide accurate information, no warranty is given regarding the
-      completeness, reliability, or suitability of the service for any particular purpose.
-      Use at your own risk.</p>
-    <p><strong>Limitation of Liability:</strong><br>
-      Sushant Kumar shall not be held liable for any damages arising from use or inability to use the website or services,
-      including data loss, business interruption, or other consequential damages.</p>
-    <p><strong>Changes to Terms:</strong><br>
-      These Terms and Conditions may be updated periodically. Continued use of the website means acceptance of the changed terms.
-      It’s recommended to review these terms regularly.</p>
-    <p><strong>Contact:</strong><br>
-      For questions or concerns regarding these terms, please contact Sushant Kumar through the website’s official channels.</p>
-    <p style="font-style: italic; font-size: 0.87rem; color: #666;">
-      Effective as of: July 24, 2025
-    </p>
-  </div>
-
-  <!-- Follow-up Modal -->
-  <div id="modalBg" class="modal-bg" tabindex="-1" aria-hidden="true"></div>
-  <div id="followupModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="followupTitle" tabindex="-1">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
-      <h3 id="followupTitle">Add Follow-up</h3>
-      <button type="button" onclick="closeFollowupModal()" aria-label="Close follow-up form" class="close-btn">✖</button>
-    </div>
-    <form id="followupForm" autocomplete="off">
-      <div style="margin-bottom: 12px;">For: <b><span id="fLeadName"></span></b></div>
-      <label for="followupDate">Date & Time</label>
-      <input type="datetime-local" id="followupDate" required aria-required="true" />
-      <label for="followupRemark">Remark</label>
-      <textarea id="followupRemark" rows="3" required aria-required="true"></textarea>
-      <button type="submit">Add Follow-up</button>
-    </form>
-  </div>
-
-  <div style="margin:44px auto 17px auto; text-align:center; font-size:0.99rem; color:#d6e0ee; opacity:.57; user-select:none;">
-    Designed by Sushant Kumar
-  </div>
-
-<script>
-  // === Toast helper ===
-  function showToast(message, success = true) {
-    let t = document.createElement('div');
-    t.className = 'snackbar';
-    t.style.background = success
-      ? 'linear-gradient(90deg,#29a746,#1da5b9 85%)'
-      : 'linear-gradient(95deg,#d83c2b,#ee9c63 85%)';
-    t.textContent = message;
-    document.body.appendChild(t);
-    setTimeout(() => { t.style.opacity = '0'; }, 2200);
-    setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 2600);
-  }
-
-  // STORAGE KEYS
-  const USERS_KEY = 'semleads_users',
-        LEADS_KEY = 'semleads_leads',
-        SESSION_KEY = 'semleads_user';
-
-  let currentUser = null,
-      leads = [],
-      addFollowupForIdx = null;
-
-  // User list from localStorage or default
-  function getUserList() {
-    let u = JSON.parse(localStorage.getItem(USERS_KEY) || 'null');
-    if (!u) {
-      u = [
-        { username: 'shikha', password: 'shikha@123' },
-        { username: 'tripti', password: 'tripti@123' },
-        { username: 'anshi', password: 'anshi@123' },
-        { username: 'SEM', password: 'sem@ops123' },
-        { username: 'sushant', password: 'sush@123' },
-        { username: 'gaurav', password: 'gaurav@123' },
-        { username: 'yash', password: 'yash@123' },
-        { username: 'developer', password: 'dev041228' },
-      ];
-      localStorage.setItem(USERS_KEY, JSON.stringify(u));
-    }
-    return u;
-  }
-  function setUserList(arr) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(arr));
-  }
-
-  // Leads from localStorage or default
-  function getStoredLeads() {
-    let arr = JSON.parse(localStorage.getItem(LEADS_KEY) || '[]');
-    arr.forEach((lead) => {
-      if (!lead.followups) lead.followups = [];
-    });
-    window.leads = arr;
-    return arr;
-  }
-  function saveLeads() {
-    localStorage.setItem(LEADS_KEY, JSON.stringify(window.leads || []));
-  }
-
-  function isDeveloper() {
-    return currentUser === 'developer';
-  }
-
-  // ------------ LOGIN FLOW ------------
-  function loginCheck(username, password) {
-    let list = getUserList();
-    return list.find(
-      (u) =>
-        u.username.trim().toLowerCase() === username.toLowerCase() && u.password === password
-    );
-  }
-  function showError(msg) {
-    document.getElementById('error').textContent = msg;
-  }
-  document.getElementById('loginUser').oninput = document.getElementById('loginPass').oninput = function () {
-    document.getElementById('error').textContent = '';
-  };
-  document.getElementById('loginForm').onsubmit = function (e) {
-    e.preventDefault();
-    let user = document.getElementById('loginUser').value.trim(),
-        pass = document.getElementById('loginPass').value;
-    let res = loginCheck(user, pass);
-    if (!res) return showError('Invalid username or password.');
-    localStorage.setItem(SESSION_KEY, user);
-    currentUser = user;
-    if (isDeveloper()) {
-      document.getElementById('login-page').style.display = 'none';
-      document.getElementById('superAdminPanel').style.display = '';
-      document.getElementById('devUsername').textContent = currentUser;
-      window.superadmin = new SuperAdmin();
-      return;
-    }
-    showDashboard();
-  };
-  function logout() {
-    localStorage.removeItem(SESSION_KEY);
-    location.reload();
-  }
-
-  // -------------- DASHBOARD & TABS --------------
-  function setActiveTab(userTabs, activeTab) {
-    userTabs.querySelectorAll('button').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tab === activeTab);
-      btn.setAttribute('aria-selected', btn.dataset.tab === activeTab ? 'true' : 'false');
-    });
-  }
-
-  function renderUserTabs() {
-    const userTabs = document.getElementById('user-tabs');
-    userTabs.innerHTML = '';
-
-    let tabs = [
-      { id: 'dashboard', label: 'Dashboard' },
-      { id: 'all-leads', label: 'All Leads' },
+  <script>
+    // --- User/Role Data ---
+    const USERS = [
+      {username:'sushant', password:'sush@123', role:'user'},
+      {username:'gaurav', password:'gaurav@123', role:'user'},
+      {username:'yash', password:'yash@123', role:'user'},
+      {username:'shikha', password:'shikha@123', role:'user'},
+      {username:'tripti', password:'tripti@123', role:'user'},
+      {username:'anshi', password:'anshi@123', role:'user'},
+      {username:'SEM', password:'semops@123', role:'sem'},
+      {username:'developer', password:'dev041228', role:'developer'}
     ];
-    tabs.forEach(({ id, label }) => {
-      let btn = document.createElement('button');
-      btn.textContent = label;
-      btn.dataset.tab = id;
-      btn.className = 'glass-tab-btn';
-      btn.setAttribute('role', 'tab');
-      btn.onclick = () => {
-        setActiveTab(userTabs, id);
-        renderTabContent(id);
-      };
-      userTabs.appendChild(btn);
-    });
-    // Activate "Dashboard" by default on load
-    setActiveTab(userTabs, 'dashboard');
-  }
+    const USERNAMES = USERS.map(u => u.username);
 
-  function renderTabContent(tabId) {
-    const container = document.getElementById('tab-content-panels');
-    container.innerHTML = '';
-    if (tabId === 'dashboard') {
-      container.appendChild(createAddLeadPanel());
-      container.appendChild(createTodaysFollowupsPanel());
-      container.appendChild(createUserLeadsPanel());
-    } else if (tabId === 'all-leads') {
-      container.appendChild(createAllLeadsPanel());
-    }
-  }
+    // --- Local Storage Data Handling ---
+    function getData(key)  { return JSON.parse(localStorage.getItem(key)||'[]'); }
+    function setData(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 
-  // Adds new lead form panel
-  function createAddLeadPanel() {
-    const panel = document.createElement('section');
-    panel.className = 'glass-panel';
-    panel.setAttribute('aria-label', 'Add New Lead');
+    // --- State ---
+    let currentUser = null;
+    let leadsDB = getData('leads');
+    let followupsDB = getData('followups');
 
-    const h2 = document.createElement('h2');
-    h2.textContent = 'Add New Lead';
-    h2.className = 'tab-section-title';
-    panel.appendChild(h2);
-
-    const form = document.createElement('form');
-    form.id = 'leadForm';
-    form.autocomplete = 'off';
-
-    const fields = [
-      { label: 'Event Name', id: 'leadEventName', type: 'text', required: true },
-      { label: 'Email', id: 'leadEmail', type: 'email', required: true },
-      { label: 'Phone', id: 'leadPhone', type: 'text', required: true },
-      { label: 'Designation', id: 'leadDesignation', type: 'text', required: true },
-      { label: 'Organising Society', id: 'leadOrgSociety', type: 'text', required: true },
-    ];
-    fields.forEach(({ label, id, type, required }) => {
-      const lbl = document.createElement('label');
-      lbl.setAttribute('for', id);
-      lbl.textContent = label;
-      form.appendChild(lbl);
-
-      const input = document.createElement('input');
-      input.type = type;
-      input.id = id;
-      input.name = id;
-      if (required) input.required = true;
-      form.appendChild(input);
-    });
-
-    const labelCategory = document.createElement('label');
-    labelCategory.setAttribute('for', 'leadCategory');
-    labelCategory.textContent = 'Category';
-    form.appendChild(labelCategory);
-
-    const selectCategory = document.createElement('select');
-    selectCategory.id = 'leadCategory';
-    selectCategory.name = 'leadCategory';
-    selectCategory.required = true;
-
-    ['', 'Hot', 'Warm', 'Cold', 'NI', 'NRE'].forEach(cat => {
-      const option = document.createElement('option');
-      option.value = cat;
-      option.textContent = cat || 'Select';
-      selectCategory.appendChild(option);
-    });
-    form.appendChild(selectCategory);
-
-    const labelRemarks = document.createElement('label');
-    labelRemarks.setAttribute('for', 'leadRemarks');
-    labelRemarks.textContent = 'Remarks';
-    form.appendChild(labelRemarks);
-
-    const textareaRemarks = document.createElement('textarea');
-    textareaRemarks.id = 'leadRemarks';
-    textareaRemarks.name = 'leadRemarks';
-    textareaRemarks.rows = 2;
-    form.appendChild(textareaRemarks);
-
-    const submitBtn = document.createElement('button');
-    submitBtn.type = 'submit';
-    submitBtn.textContent = 'Add Lead';
-    form.appendChild(submitBtn);
-
-    form.onsubmit = leadFormSubmitHandler;
-
-    panel.appendChild(form);
-    return panel;
-  }
-
-  function leadFormSubmitHandler(e) {
-    e.preventDefault();
-    const form = e.target;
-
-    const eventName = form.leadEventName.value.trim();
-    const email = form.leadEmail.value.trim();
-    const phone = form.leadPhone.value.trim();
-    const designation = form.leadDesignation.value.trim();
-    const society = form.leadOrgSociety.value.trim();
-    const category = form.leadCategory.value;
-    const remarks = form.leadRemarks.value.trim();
-
-    if (!eventName || !email || !designation || !society || !phone || !category) {
-      showToast('Please fill all the fields!', false);
-      return;
+    // Welcome Popup Utility
+    function showPopup(msg) {
+      const pop=document.getElementById('popup');
+      pop.innerText=msg;
+      pop.classList.add('show');
+      setTimeout(()=>pop.classList.remove('show'),1000);
     }
 
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      showToast('Invalid email', false);
-      return;
+    // ---- Login Logic ----
+    document.getElementById('login-form').onsubmit = function(e) {
+      e.preventDefault();
+      const uname = document.getElementById('login-username').value.trim();
+      const upass = document.getElementById('login-password').value.trim();
+      const u = USERS.find(x => x.username === uname && x.password === upass);
+      if (u) {
+        currentUser = { ...u };
+        document.getElementById('login-page').style.display = 'none';
+        showPopup(`Welcome, ${uname}`);
+        setTimeout(loadMainApp, 950);
+      } else {
+        showPopup('Invalid Credentials');
+      }
     }
-    if (!/^\d{8,}$/.test(phone)) {
-      showToast('Enter valid phone number', false);
-      return;
+
+    // ---- Main App Logic ----
+    function loadMainApp() {
+      // Reload from localStorage for persistence
+      leadsDB = getData('leads');
+      followupsDB = getData('followups');
+      const uname = currentUser.username;
+      let html = `
+        <div class="header-bar">
+          <div class="user-name">${uname.charAt(0).toUpperCase()+uname.slice(1)}</div>
+          <button onclick="logout()" class="logout-btn">Logout</button>
+        </div>
+      `;
+      // Tabs by role
+      if(currentUser.role === 'user'){
+        html+=renderTabs(['User','Add Lead','My Leads'], 'user');
+      } else if(currentUser.role === 'sem'){
+        html+=renderTabs(['Add & Assign Lead','All Leads','Report'], 'sem');
+      } else if(currentUser.role === 'developer'){
+        html+=renderTabs(['Add & Assign Lead','All Leads','Report','Admin'], 'developer');
+      }
+      document.getElementById('app-page').innerHTML = html;
+      document.getElementById('app-page').style.display = 'block';
+      // Show 1st tab for role
+      handleTabSwitch(0);
     }
-    if (leads.some(l => l.email.trim().toLowerCase() === email.toLowerCase())) {
-      showToast('Email already exists!', false);
-      return;
+    // --- Tab Rendering ---
+    function renderTabs(tabNames, rkey){
+      return `
+      <div class="tab-nav">
+        ${tabNames.map((t,i)=>`<button type="button" class="nav-tab" onclick="handleTabSwitch(${i})">${t}</button>`).join('')}
+      </div>
+      <div id="tabs-panel"></div>
+      `;
+    }
+    window.handleTabSwitch = function(idx){
+      // Highlight selected tab
+      const tabs = [...document.querySelectorAll('.nav-tab')];
+      tabs.forEach((t,i)=>t.classList.toggle('selected',i===idx));
+      // Panel based on user role/tab
+      if(currentUser.role==='user'){
+        if(idx===0) loadUserHome();
+        else if(idx===1) renderAddLead(false);
+        else if(idx===2) loadMyLeads();
+      } else if(currentUser.role==='sem'){
+        if(idx===0) renderAddLead(true);
+        else if(idx===1) loadAllLeads();
+        else if(idx===2) renderReport();
+      } else if(currentUser.role==='developer'){
+        if(idx===0) renderAddLead(true);
+        else if(idx===1) loadAllLeads();
+        else if(idx===2) renderReport();
+        else if(idx===3) renderDeveloperPanel();
+      }
     }
 
-    const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000; // ms
-    const addedOnIST = new Date(now.getTime() + istOffset - now.getTimezoneOffset() * 60000);
-    const newLead = {
-      eventName,
-      email,
-      phone,
-      designation,
-      organisingSociety: society,
-      category,
-      remarks,
-      addedBy: currentUser,
-      addedOn: addedOnIST.toISOString(),
-      followups: [],
-    };
-    leads.push(newLead);
-    saveLeads();
-    showToast('Lead added!');
-    form.reset();
-    renderTabContent('dashboard');
-    renderTodayFollowups();
-  }
+    // ---- User Home Tab ----
+    function loadUserHome(){
+      // user stats, overdue, today reminders
+      const uname = currentUser.username;
+      const myLeads = leadsDB.filter(l=>l.addedBy===uname);
+      const myFupsToday = followupsDB.filter(f=>f.by===uname && isToday(f.date));
+      const allFups = followupsDB.filter(f=>f.by===uname);
+      // Overdue: followups assigned to you with date < today and not completed
+      const overdueFups = allFups.filter(f=>!f.completed && new Date(f.date)<todayStart());
+      const todaysFups = allFups.filter(f=>!f.completed && isToday(f.date));
+      document.getElementById('tabs-panel').innerHTML = `
+        <div class="panel">
+          <div style="display:flex;gap:32px;margin-bottom:24px;">
+            <div><b>Leads Added:</b> ${myLeads.length}</div>
+            <div><b>Follow Ups Today:</b> ${myFupsToday.length}</div>
+          </div>
+          <div style="margin-bottom:19px;">
+            <b>Overdue Follow Ups</b>
+            <ul style="margin:9px 0 0 13px;">
+              ${overdueFups.length===0 ? '<li>None</li>' : overdueFups.map(f=>`<li>${showLead(f.leadId)} - ${niceDate(f.date)}</li>`).join('')}
+            </ul>
+          </div>
+          <div>
+            <b>Followup Reminders (Today)</b>
+            <ul style="margin:8px 0 0 13px;">
+              ${todaysFups.length===0? '<li>None</li>' : todaysFups.map(f=>`<li>${showLead(f.leadId)} - ${f.remarks || ''}</li>`).join('')}
+            </ul>
+          </div>
+        </div>`;
+    }
 
-  function createTodaysFollowupsPanel() {
-    const panel = document.createElement('section');
-    panel.className = 'glass-panel';
-    panel.setAttribute('aria-label', "Today's Follow-ups");
-    panel.style.color = '#1d3e60';
+    // ---- Add Lead Tab (for both user/sem) ----
+    function renderAddLead(assignable){
+      const event = `
+        <div class="panel">
+          <form class="form-box" id="add-lead-form">
+            <input class="glass-glow" type="text" id="event-name" placeholder="Event Name" required>
+            <input class="glass-glow" type="text" id="org-society" placeholder="Organising Society" required>
+            <input class="glass-glow" type="text" id="contact-person" placeholder="Contact Person" required>
+            <input class="glass-glow" type="tel" id="phone" placeholder="Phone Number" required>
+            <input class="glass-glow" type="email" id="email" placeholder="Email" required>
+            <select class="glass-glow" required id="lead-stage">
+              <option value="">Lead Stage</option>
+              <option>hot</option>
+              <option>warm</option>
+              <option>cold</option>
+              <option>ni</option>
+              <option>nre</option>
+              <option>junk</option>
+            </select>
+            <textarea id="remarks" class="glass-glow" placeholder="Remarks" rows="2"></textarea>
+            <input type="date" class="glass-glow" id="lead-followup" required value="${todayStr()}">
+            ${assignable ? `
+            <select class="glass-glow" id="assign-to" required>
+              <option value="">Assign To</option>
+              ${USERS.filter(u=>u.role==='user').map(u=>`<option>${u.username}</option>`).join('')}
+            </select>
+            ` : ''}
+            <button class="primary-btn glass-glow" type="submit">Add Lead</button>
+          </form>
+        </div>
+        `;
+      document.getElementById('tabs-panel').innerHTML = event;
+      document.getElementById('add-lead-form').onsubmit = function(e){
+        e.preventDefault();
+        const values = {
+          event:document.getElementById('event-name').value,
+          society:document.getElementById('org-society').value,
+          person:document.getElementById('contact-person').value,
+          phone:document.getElementById('phone').value,
+          email:document.getElementById('email').value,
+          stage:document.getElementById('lead-stage').value,
+          remarks:document.getElementById('remarks').value,
+          followup:document.getElementById('lead-followup').value,
+          addedAt:Date.now(),
+          assignedTo: assignable ? document.getElementById('assign-to').value : currentUser.username,
+          addedBy: assignable ? currentUser.username : currentUser.username,
+          id: 'L'+Date.now()+''+Math.floor(Math.random()*100),
+        };
+        // Save lead
+        leadsDB.push(values);
+        setData('leads',leadsDB);
+        // Save initial followup
+        followupsDB.push({
+          id:'F'+Date.now()+''+Math.floor(Math.random()*100),
+          leadId: values.id,
+          by: values.assignedTo,
+          date: values.followup,
+          completed:false,
+          remarks:'Initial followup'
+        });
+        setData('followups',followupsDB);
+        showPopup('Lead Added');
+        setTimeout(()=>handleTabSwitch( assignable||currentUser.role==='sem' ? 1 : 2 ), 700);
+      }
+    }
 
-    const h2 = document.createElement('h2');
-    h2.textContent = "Today's Follow-ups";
-    h2.className = 'tab-section-title';
-    panel.appendChild(h2);
-
-    const container = document.createElement('div');
-    container.id = 'calendar-list';
-    panel.appendChild(container);
-
-    renderTodayFollowups(container);
-
-    return panel;
-  }
-
-  function renderTodayFollowups(container) {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = now.getMonth();
-    const dd = now.getDate();
-    const todayStart = new Date(yyyy, mm, dd, 0, 0, 0).getTime();
-    const todayEnd = new Date(yyyy, mm, dd, 23, 59, 59).getTime();
-
-    container.innerHTML = '';
-    let html = '';
-
-    leads.forEach((lead, i) => {
-      lead.followups.forEach((f, idx) => {
-        const ts = new Date(f.datetime).getTime();
-        if (ts >= todayStart && ts <= todayEnd) {
-          html += `<div class="flex" style="align-items:center;margin-bottom:7px;">
-            <span class="tag ${lead.category.split(' ')[0]}" style="min-width:40px;">${lead.category}</span>
-            <b style="color:#0791c4;">${lead.eventName}</b>
-            <span style="margin-left:8px;">${new Date(f.datetime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-            <span style="margin-left:10px;">${f.remark}</span>
-            <span style="color:${f.done ? '#26b361' : '#d0021b'};font-size:.98em; margin-left:10px;">[${f.done ? 'Done' : 'Pending'}]</span>
-            <button type="button" onclick="markFollowupDone(${i},${idx})" style="margin-left:14px; font-size:13px;">Mark Done</button>
-          </div>`;
+    // ---- My Leads (for user) ----
+    function loadMyLeads(){
+      const uname = currentUser.username;
+      const myLeads = leadsDB.filter(l=>l.assignedTo===uname);
+      let tbody = myLeads.map(lead=>{
+        return `<tr>
+          <td>${lead.event}</td>
+          <td>${lead.society}</td>
+          <td>${lead.person}</td>
+          <td>${lead.phone}</td>
+          <td>${lead.email}</td>
+          <td>${lead.stage}</td>
+          <td>${lead.remarks}</td>
+          <td>${niceDateTime(lead.addedAt)}</td>
+          <td><button onclick="addFollowup('${lead.id}')" class="primary-btn glass-glow" style="padding:5px 14px;font-size:0.93rem;">Add Follow Up</button></td>
+        </tr>`;
+      }).join('');
+      if(!tbody) tbody = '<tr><td colspan="9" style="text-align:center;">No leads yet.</td></tr>';
+      document.getElementById('tabs-panel').innerHTML = `
+        <div class="panel" style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Event</th><th>Society</th><th>Contact</th><th>Phone</th><th>Email</th><th>Stage</th><th>Remarks</th><th>Added</th><th>Follow Up</th>
+            </tr>
+          </thead>
+          <tbody>${tbody}</tbody>
+        </table>
+        </div>
+      `;
+    }
+    window.addFollowup = function(leadId){
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `
+        <div class="glass-container" style="max-width:350px;">
+          <h2 style="font-size:1.2rem;margin-bottom:9px;">Add Follow Up</h2>
+          <form class="form-box" id="followup-form">
+            <input type="date" class="glass-glow" value="${todayStr()}" id="followup-date" required>
+            <textarea id="followup-remarks" class="glass-glow" placeholder="Remarks" rows="2"></textarea>
+            <button class="primary-btn glass-glow" type="submit">Submit</button>
+          </form>
+        </div>
+      `;
+      showModal(wrap.innerHTML, ()=>{
+        document.getElementById('followup-form').onsubmit = function(e){
+          e.preventDefault();
+          followupsDB.push({
+            id:'F'+Date.now()+''+Math.floor(Math.random()*100),
+            leadId,
+            by: currentUser.username,
+            date: document.getElementById('followup-date').value,
+            completed:false,
+            remarks: document.getElementById('followup-remarks').value
+          });
+          setData('followups',followupsDB);
+          document.body.removeChild(document.querySelector('.modal-overlay'));
+          showPopup('Follow up added');
         }
       });
-    });
-
-    container.innerHTML = html || '<em>No follow-ups scheduled for today.</em>';
-  }
-
-  window.markFollowupDone = (leadIdx, fIdx) => {
-    if (leads[leadIdx].followups[fIdx].done) return showToast('Already marked done.', false);
-    if (!confirm('Mark this follow-up as done?')) return;
-    leads[leadIdx].followups[fIdx].done = true;
-    saveLeads();
-    renderTodayFollowups(document.getElementById('calendar-list'));
-    showToast('Marked done.', true);
-  };
-
-  // Panel with list of leads added by currentUser (for Dashboard)
-  function createUserLeadsPanel() {
-    const panel = document.createElement('section');
-    panel.className = 'glass-panel';
-    panel.setAttribute('aria-label', 'Your Leads');
-
-    const h2 = document.createElement('h2');
-    h2.textContent = 'Your Leads';
-    h2.className = 'tab-section-title';
-    panel.appendChild(h2);
-
-    const container = document.createElement('div');
-    container.id = 'userLeadsList';
-    panel.appendChild(container);
-
-    renderUserLeads(container);
-
-    return panel;
-  }
-
-  function renderUserLeads(container) {
-    let userLeads = leads.filter(l => (currentUser.toLowerCase() === 'sem') ? true : l.addedBy === currentUser);
-    if (userLeads.length === 0) {
-      container.innerHTML = '<em>No leads added yet.</em>';
-      return;
-    }
-    let html = `<table aria-label="Leads table">
-      <thead><tr>
-      <th>Event Name</th>
-      <th>Email</th>
-      <th>Phone</th>
-      <th>Designation</th>
-      <th>Society</th>
-      <th>Category</th>
-      <th>Remarks</th>
-      <th>Added On</th>
-      <th>Follow-ups</th>
-      </tr></thead><tbody>`;
-    userLeads.forEach((lead, i) => {
-      html += `<tr>
-        <td>${lead.eventName}</td>
-        <td>${lead.email}</td>
-        <td>${lead.phone}</td>
-        <td>${lead.designation}</td>
-        <td>${lead.organisingSociety}</td>
-        <td><span class="tag ${lead.category.split(' ')[0]}">${lead.category}</span></td>
-        <td>${lead.remarks || '-'}</td>
-        <td>${new Date(lead.addedOn).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
-        <td>
-          ${lead.followups?.length || 0}
-          <button type="button" onclick="openFollowupModal(${leads.indexOf(lead)})" aria-label="Add follow up to ${lead.eventName}">➕ Add</button>
-          <br>
-          ${(lead.followups || []).map((f, idx) => {
-            let canDelete = (currentUser.toLowerCase() === 'sem' || lead.addedBy === currentUser);
-            return `<div style="font-size:13px;padding:4px 0;">
-              📆 ${new Date(f.datetime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}<br>
-              <span style="color:#444;">${f.remark}</span>
-              <span style="color:${f.done ? '#26b361' : '#d0021b'};font-weight:bold;">[${f.done ? 'Done' : 'Pending'}]</span>
-              ${canDelete ? `<button type="button" onclick="deleteFollowup(${leads.indexOf(lead)}, ${idx})" title="Delete follow-up" style="font-size:11px; margin-left:6px;">🗑️</button>` : ''}
-            </div>`;
-          }).join('')}
-        </td>
-      </tr>`;
-    });
-    html += '</tbody></table>';
-
-    container.innerHTML = html;
-  }
-
-  // Delete a follow-up (only if authorized)
-  window.deleteFollowup = function(leadIdx, fIdx) {
-    const lead = leads[leadIdx];
-    if (!lead) return;
-    if (!(currentUser.toLowerCase() === 'sem' || lead.addedBy === currentUser)) {
-      showToast('Not authorized', false);
-      return;
-    }
-    if (!confirm('Delete this follow-up?')) return;
-    lead.followups.splice(fIdx, 1);
-    saveLeads();
-    renderUserLeads(document.getElementById('userLeadsList'));
-    showToast('Follow-up deleted!');
-  };
-
-  // All Leads tab (SEM sees all leads, others see only their own)
-  function createAllLeadsPanel() {
-    const panel = document.createElement('section');
-    panel.className = 'glass-panel';
-    panel.setAttribute('aria-label', 'All Leads');
-
-    const h2 = document.createElement('h2');
-    h2.textContent = 'All Leads';
-    h2.className = 'tab-section-title';
-    panel.appendChild(h2);
-
-    const searchInput = document.createElement('input');
-    searchInput.type = 'text';
-    searchInput.id = 'allSearchLead';
-    searchInput.placeholder = 'Search leads...';
-    searchInput.style.marginBottom = '10px';
-    searchInput.style.padding = '8px 10px';
-    searchInput.style.fontSize = '1rem';
-    searchInput.style.borderRadius = '9px';
-    panel.appendChild(searchInput);
-
-    const container = document.createElement('div');
-    container.id = 'allLeadsTableContainer';
-    panel.appendChild(container);
-
-    searchInput.addEventListener('input', renderAllLeadsTable);
-
-    renderAllLeadsTable();
-
-    return panel;
-  }
-
-  function renderAllLeadsTable() {
-    const q = document.getElementById('allSearchLead').value.trim().toLowerCase();
-    let container = document.getElementById('allLeadsTableContainer');
-    let visibleLeads = (currentUser && currentUser.toLowerCase() === 'sem')
-      ? leads
-      : leads.filter(l => l.addedBy && l.addedBy.toLowerCase() === currentUser.toLowerCase());
-
-    // Filter by search
-    visibleLeads = visibleLeads.filter(lead => {
-      return [lead.eventName, lead.email, lead.phone, lead.designation, lead.organisingSociety, lead.category, lead.remarks || '', lead.addedBy]
-        .join(' | ')
-        .toLowerCase()
-        .includes(q);
-    });
-
-    if (visibleLeads.length === 0) {
-      container.innerHTML = '<em>No matching leads found.</em>';
-      return;
     }
 
-    let html = `<table aria-label="All Leads table">
-      <thead><tr>
-      <th>Event Name</th><th>Email</th><th>Phone</th><th>Designation</th>
-      <th>Society</th><th>Category</th><th>Remarks</th>
-      <th>Added By</th><th>Added On</th><th>Follow-ups</th>
-      </tr></thead><tbody>`;
-
-    visibleLeads.forEach((lead, i) => {
-      html += `<tr>
-        <td>${lead.eventName}</td>
-        <td>${lead.email}</td>
-        <td>${lead.phone}</td>
-        <td>${lead.designation}</td>
-        <td>${lead.organisingSociety}</td>
-        <td><span class="tag ${lead.category.split(' ')[0]}">${lead.category}</span></td>
-        <td>${lead.remarks || ''}</td>
-        <td>${lead.addedBy || ''}</td>
-        <td>${new Date(lead.addedOn).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
-        <td>
-          ${lead.followups?.length || 0}
-          <button type="button" onclick="openFollowupModal(${leads.indexOf(lead)})" aria-label="Add follow up to ${lead.eventName}">➕ Add</button>
-          <br>
-          ${(lead.followups || []).map((f, idx) => {
-            let canDelete = (currentUser.toLowerCase() === 'sem');
-            return `<div style="font-size:13px;padding:4px 0;">
-              📆 ${new Date(f.datetime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
-              <br><span style="color:#444;">${f.remark}</span>
-              <span style="color:${f.done ? '#26b361' : '#d0021b'};font-weight:bold;">[${f.done ? 'Done' : 'Pending'}]</span>
-              ${canDelete ? `<button type="button" onclick="deleteFollowup(${leads.indexOf(lead)}, ${idx})" title="Delete follow-up" style="font-size:11px; margin-left:6px;">🗑️</button>` : ''}
-            </div>`;
-          }).join('')}
-        </td>
-      </tr>`;
-    });
-
-    html += '</tbody></table>';
-
-    container.innerHTML = html;
-  }
-
-  // --- Modals and Follow-up handler ---
-  const modalBg = document.getElementById('modalBg');
-  const followupModal = document.getElementById('followupModal');
-
-  window.openFollowupModal = function (idx) {
-    if (!leads[idx]) return;
-    addFollowupForIdx = idx;
-    document.getElementById('fLeadName').textContent = leads[idx].eventName;
-    document.getElementById('followupDate').value = '';
-    document.getElementById('followupRemark').value = '';
-    modalBg.classList.add('open');
-    followupModal.classList.add('open');
-    followupModal.setAttribute('aria-hidden', 'false');
-    followupModal.focus();
-  };
-  window.closeFollowupModal = function () {
-    modalBg.classList.remove('open');
-    followupModal.classList.remove('open');
-    followupModal.setAttribute('aria-hidden', 'true');
-  };
-  document.getElementById('modalBg').onclick = window.closeFollowupModal;
-
-  document.getElementById('followupForm').onsubmit = function (e) {
-    e.preventDefault();
-    let dt = document.getElementById('followupDate').value,
-        remark = document.getElementById('followupRemark').value.trim();
-    if (!dt) return showToast('Date and time required!', false);
-    if (!remark) return showToast('Please enter remark!', false);
-    let lead = leads[addFollowupForIdx];
-    if (!lead) {
-      showToast('Lead not found!', false);
-      closeFollowupModal();
-      return;
+    // ---- All Leads (sem/dev) ----
+    function loadAllLeads(){
+      let filterUsers = USERS.filter(u=>u.role==='user');
+      let html = `
+        <div class="panel">
+          <div style="margin-bottom:14px;">
+            <select class="glass-glow" id="filter-user">
+              <option value="">Filter by User</option>
+              ${filterUsers.map(u=>`<option>${u.username}</option>`).join('')}
+            </select>
+            <input class="glass-glow" type="date" id="filter-date" value="">
+            <button class="primary-btn glass-glow" onclick="filterLeads()">Search</button>
+          </div>
+          <div style="overflow-x:auto">
+          <table id="all-leads-table">
+            <thead>
+              <tr>
+                <th>Event</th><th>Society</th><th>Contact</th><th>Phone</th><th>Email</th><th>Stage</th>
+                <th>Remarks</th><th>Follow up</th><th>Assigned To</th><th>Added At</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${renderLeadsTable(leadsDB)}
+            </tbody>
+          </table>
+          </div>
+        </div>
+      `;
+      document.getElementById('tabs-panel').innerHTML = html;
     }
-    // Authorization:
-    if (currentUser.toLowerCase() !== 'sem' && lead.addedBy !== currentUser) {
-      showToast('Not authorized to add follow-up to this lead', false);
-      closeFollowupModal();
-      return;
+    window.filterLeads = function(){
+      let valU = document.getElementById('filter-user').value;
+      let valD = document.getElementById('filter-date').value;
+      let filtered = leadsDB.filter(l=>
+        (!valU || l.assignedTo===valU) &&
+        (!valD || l.addedAt && niceDateStr(l.addedAt)==valD)
+      );
+      document.querySelector('#all-leads-table tbody').innerHTML = renderLeadsTable(filtered);
     }
-    lead.followups.push({ datetime: dt, remark: remark, done: false });
-    saveLeads();
-    closeFollowupModal();
-    renderTabContent(document.querySelector('#user-tabs button.active')?.dataset.tab || 'dashboard');
-    renderTodayFollowups(document.getElementById('calendar-list'));
-    showToast('Follow-up added!');
-  };
-
-  // === SUPER ADMIN PANEL CODE from previous (unchanged) ===
-  // (Insert same as previously provided SuperAdmin class and its methods here)
-
-  // Skipping SuperAdmin class code here to stay concise.
-  // It is the same as provided in your previous messages,
-  // It will work seamlessly with this updated main app.
-
-  window.superadmin = null;
-
-  // Terms & Conditions modal (use same code as before)
-  const termsModalBg = document.getElementById('termsModalBg');
-  const termsModal = document.getElementById('termsModal');
-  const showTermsLink = document.getElementById('showTermsLink');
-  const closeTermsBtn = document.getElementById('closeTermsBtn');
-
-  function openTermsModal() {
-    termsModalBg.classList.add('open');
-    termsModal.classList.add('open');
-    termsModal.setAttribute('aria-hidden', 'false');
-    termsModal.focus();
-  }
-  function closeTermsModal() {
-    termsModalBg.classList.remove('open');
-    termsModal.classList.remove('open');
-    termsModal.setAttribute('aria-hidden', 'true');
-  }
-  showTermsLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    openTermsModal();
-  });
-  closeTermsBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    closeTermsModal();
-  });
-  termsModalBg.addEventListener('click', (e) => {
-    closeTermsModal();
-  });
-
-  // On page load
-  window.onload = function () {
-    currentUser = localStorage.getItem(SESSION_KEY);
-    leads = getStoredLeads();
-    if (currentUser === 'developer') {
-      document.getElementById('login-page').style.display = 'none';
-      document.getElementById('superAdminPanel').style.display = '';
-      document.getElementById('devUsername').textContent = currentUser;
-      window.superadmin = new SuperAdmin();
-      return;
+    function renderLeadsTable(arr){
+      if(arr.length === 0) return `<tr><td colspan="10" style="text-align:center;">No leads found.</td></tr>`;
+      return arr.map(lead=>{
+        return `<tr>
+          <td>${lead.event}</td>
+          <td>${lead.society}</td>
+          <td>${lead.person}</td>
+          <td>${lead.phone}</td>
+          <td>${lead.email}</td>
+          <td>${lead.stage}</td>
+          <td>${lead.remarks}</td>
+          <td>${renderFollowups(lead.id)}</td>
+          <td>${lead.assignedTo}</td>
+          <td>${niceDateTime(lead.addedAt)}</td>
+        </tr>`;
+      }).join('');
     }
-    if (currentUser) {
-      document.getElementById('login-page').style.display = 'none';
-      showDashboard();
+    function renderFollowups(leadId){
+      const fups = followupsDB.filter(f=>f.leadId===leadId);
+      if(!fups.length) return 'None';
+      return `<ul style="padding-left:13px;font-size:0.94rem;">
+        ${fups.map(f=>
+          `<li>
+            ${niceDate(f.date)}: ${f.remarks||''}
+            ${f.completed ? '<span style="color:green">✔️</span>' : ''}
+          </li>`
+        ).join('')}
+      </ul>`;
     }
-  };
-</script>
 
+    // ---- Report (sem/dev) ----
+    function renderReport(){
+      let dates = [...new Set(leadsDB.map(l=>niceDateStr(l.addedAt)))].sort().reverse();
+      let html = `
+        <div class="panel">
+        <select id="report-date" class="glass-glow" onchange="renderReport()">
+          <option value="">Select date</option>
+          ${dates.map(d=>`<option>${d}</option>`).join('')}
+        </select>
+        <table>
+        <thead>
+          <tr><th>User</th><th>No. of Leads</th><th>No. of Followups</th></tr>
+        </thead>
+        <tbody>
+        ${USERS.filter(u=>u.role==='user').map(u=>{
+          let leads = leadsDB.filter(l=>l.assignedTo===u.username);
+          let dateFilter = document.getElementById('report-date')?.value;
+          if(dateFilter) leads = leads.filter(l=>niceDateStr(l.addedAt)===dateFilter);
+          let fups = followupsDB.filter(f=>f.by===u.username);
+          if(dateFilter) fups = fups.filter(f=>niceDateStr(f.date)===dateFilter);
+          return `<tr>
+            <td>${u.username}</td>
+            <td>${leads.length}</td>
+            <td>${fups.length}</td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+        </table>
+        </div>
+      `;
+      document.getElementById('tabs-panel').innerHTML = html;
+    }
+
+    // ---- Developer/Admin Tab ---
+    function renderDeveloperPanel(){
+      // Full control panel: usernames, passwords, roles, etc.
+      let html = `
+        <div class="panel">
+          <h2 style="font-size:1.1rem">Admin Control Panel</h2>
+          <div style="margin-bottom:22px;">
+            <b>All Users</b>
+            <table>
+              <thead><tr><th>User</th><th>Role</th><th>Password</th><th>Action</th></tr></thead>
+              <tbody>
+                ${USERS.map(u=>`
+                <tr>
+                  <td contenteditable="true" onblur="adminUpdateUser('${u.username}','username',this.innerText)">${u.username}</td>
+                  <td contenteditable="true" onblur="adminUpdateUser('${u.username}','role',this.innerText)">${u.role}</td>
+                  <td contenteditable="true" onblur="adminUpdateUser('${u.username}','password',this.innerText)">${u.password}</td>
+                  <td><button onclick="adminDeleteUser('${u.username}')" style="color:#d22c0c;background:none;border:none;cursor:pointer">Delete</button></td>
+                </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div><button class="primary-btn glass-glow" onclick="adminAddUser()">Add new user</button></div>
+        </div>
+      `;
+      document.getElementById('tabs-panel').innerHTML = html;
+    }
+    window.adminUpdateUser = function(username, field, val){
+      // In a real app, update database or API. Here, just update USERS array and refresh.
+      let idx = USERS.findIndex(u=>u.username===username);
+      if(idx>-1){
+        USERS[idx][field]=val;
+        showPopup('User updated');
+        renderDeveloperPanel();
+      }
+    }
+    window.adminDeleteUser = function(username){
+      let idx = USERS.findIndex(u=>u.username===username);
+      if(idx>-1){
+        USERS.splice(idx,1);
+        showPopup('User deleted');
+        renderDeveloperPanel();
+      }
+    }
+    window.adminAddUser = function(){
+      USERS.push({username:'newuser','password':'pass','role':'user'});
+      renderDeveloperPanel();
+    }
+
+    // ---- Modal Utility ----
+    function showModal(html, cb){
+      const mask = document.createElement('div');
+      mask.className = "modal-overlay";
+      mask.style='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(30,60,80,0.21);z-index:1009;display:flex;align-items:center;justify-content:center;';
+      mask.innerHTML = `<div>${html}</div>`;
+      mask.onclick = function(e){ if(e.target===mask)document.body.removeChild(mask);}
+      document.body.appendChild(mask);
+      if(cb) setTimeout(cb,120);
+    }
+
+    // ---- Logout ----
+    window.logout = function(){
+      currentUser = null;
+      document.getElementById('app-page').style.display = 'none';
+      document.getElementById('login-page').style.display = 'block';
+      document.getElementById('login-form').reset();
+    }
+
+    // --- Helper: Nice Formatting
+    function niceDate(ts) {
+      if(!ts) return "";
+      const odate = typeof ts === 'string' && ts.length<=10 ? new Date(ts) : new Date(ts);
+      return odate.toLocaleDateString('en-IN',{month:'short',day:'2-digit'});
+    }
+    function niceDateStr(ts){
+      const d = typeof ts === 'number'? new Date(ts) : new Date(ts);
+      return d.toISOString().split('T')[0];
+    }
+    function niceDateTime(ts){
+      const d = new Date(ts);
+      const dstr = d.toLocaleDateString('en-IN',{month:'short',day:'2-digit'});
+      const tstr = d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+      return dstr+' '+tstr;
+    }
+    function todayStr(){
+      const d=new Date();
+      return d.toISOString().split('T')[0];
+    }
+    function todayStart(){
+      let d = new Date();
+      d.setHours(0); d.setMinutes(0); d.setSeconds(0); d.setMilliseconds(0);
+      return d;
+    }
+    function isToday(date){
+      if(!date) return false;
+      let d = typeof date==='string'?new Date(date):new Date(date);
+      let now = new Date();
+      return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+    }
+    function showLead(leadId){
+      let l = leadsDB.find(l=>l.id===leadId);
+      return l ? l.event : leadId;
+    }
+
+    // --- Keep code scoped & encapsulated for security in real deployment
+  </script>
 </body>
 </html>
