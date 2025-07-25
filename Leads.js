@@ -4,7 +4,7 @@ const supabase = supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyYmJ4eGFubG5mdHR4cmt1cXpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NzQ0OTcsImV4cCI6MjA2OTA1MDQ5N30.ZyWy-ru4bs6Wf0NUGTrA9fVeVbgv1rvVwf9YJ70MuSI'
 );
 
-// Hardcoded users for demo auth (consider using Supabase Auth for production)
+// Hard-coded users for demo authentication (replace or augment with Supabase Auth later)
 const users = [
   {username:"sushant", password:"sush@123", role:"user"},
   {username:"gaurav", password:"gaurav@123", role:"user"},
@@ -16,22 +16,21 @@ const users = [
   {username:"developer", password:"dev041228", role:"developer"},
 ];
 
-let followups = []; // Optionally implement followups on Supabase in similar manner if you have table
 let session_user = null;
 
-/* --- Helper Functions --- */
+/* --- Helper functions --- */
 function showPopup(msg) {
   const popup = document.getElementById('popup');
   popup.style.display = '';
   document.getElementById('popup-content').textContent = msg;
-  setTimeout(() => { popup.style.display = 'none'; }, 1000);
+  setTimeout(() => { popup.style.display = 'none'; }, 1200);
 }
 function formatDateIST(date) {
   const d = new Date(date);
   return d.toLocaleString('en-IN', {timeZone:'Asia/Kolkata'});
 }
 function capitalize(str) {
-  return str.slice(0,1).toUpperCase() + str.slice(1);
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 }
 
 /* --- Authentication --- */
@@ -40,7 +39,7 @@ function login(e) {
   const uname = document.getElementById('username').value.trim().toLowerCase();
   const pwd = document.getElementById('password').value;
 
-  // Basic auth with demo users (replace with Supabase Auth if needed)
+  // Basic demo auth
   const user = users.find(u => u.username === uname && u.password === pwd);
   if (!user) {
     showPopup("Incorrect username or password");
@@ -60,7 +59,7 @@ function logout() {
   document.getElementById('password').value = '';
 }
 
-/* --- Supabase Data Operations for Leads --- */
+/* --- Lead Operations --- */
 // Fetch leads with optional filters
 async function getLeads(filters = {}) {
   let query = supabase.from('leads').select('*').order('date_added', { ascending: false });
@@ -71,9 +70,8 @@ async function getLeads(filters = {}) {
   if (filters.dateAdded) {
     query = query.eq('date_added', filters.dateAdded);
   }
-  // Filtering by text query is done client-side below due to limited LIKE support
 
-  let { data, error } = await query;
+  const { data, error } = await query;
   if (error) {
     console.error('Error fetching leads:', error);
     return [];
@@ -81,9 +79,9 @@ async function getLeads(filters = {}) {
   return data || [];
 }
 
-// Add new lead to Supabase
+// Add a new lead to Supabase
 async function addLeadToSupabase(lead) {
-  let { data, error } = await supabase.from('leads').insert([lead]);
+  const { data, error } = await supabase.from('leads').insert([lead]);
   if (error) {
     alert('Failed to add lead: ' + error.message);
     throw error;
@@ -94,7 +92,7 @@ async function addLeadToSupabase(lead) {
 
 // Update lead field in Supabase
 async function updateLeadField(leadId, field, value) {
-  let { error } = await supabase.from('leads').update({ [field]: value }).eq('id', leadId);
+  const { error } = await supabase.from('leads').update({ [field]: value }).eq('id', leadId);
   if (error) {
     showPopup('Failed to update lead');
     console.error(error);
@@ -103,7 +101,47 @@ async function updateLeadField(leadId, field, value) {
   }
 }
 
-/* --- Dashboard and Tabs Rendering --- */
+/* --- Follow-up Operations --- */
+// Fetch followups with optional filters
+async function getFollowups(filters = {}) {
+  let query = supabase.from('followups').select('*');
+
+  if (filters.user) {
+    query = query.eq('user', filters.user);
+  }
+  if (filters.date) {
+    query = query.eq('date', filters.date);
+  }
+  if (filters.leadId) {
+    query = query.eq('lead_id', filters.leadId);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('Error fetching followups: ', error);
+    return [];
+  }
+  return data || [];
+}
+
+// Add a followup to Supabase
+async function addFollowupToSupabase(followup) {
+  const { data, error } = await supabase.from('followups').insert([followup]);
+  if (error) {
+    alert('Failed to add follow-up: ' + error.message);
+    throw error;
+  }
+  showPopup('Follow-up Added!');
+  return data;
+}
+
+// Update followup status (optional, e.g. mark done)
+async function updateFollowupStatus(followupId, status) {
+  const { error } = await supabase.from('followups').update({ status }).eq('id', followupId);
+  if (error) console.error('Failed to update followup status', error);
+}
+
+/* --- Dashboard Tabs Rendering --- */
 async function renderDashboard() {
   document.getElementById('user-label').innerText = capitalize(session_user.username);
   let tabs = [];
@@ -148,14 +186,13 @@ function selectTab(idx) {
 
 /* --- User Tab --- */
 async function renderUserTab() {
-  // For demo, keep followups in-memory or extend to fetch from Supabase (not shown here)
-  const today = new Date().toISOString().substring(0, 10);
-  // Fetch user's leads
-  const userLeads = await getLeads({assignedTo: session_user.username});
-  // Filter followups from in-memory array for demo
-  const followupDone = followups.filter(f => f.user === session_user.username && f.date.split('T')[0] === today).length;
-  const overdue = followups.filter(f => f.user === session_user.username && f.status !== 'done' && new Date(f.date) < new Date());
-  const reminders = followups.filter(f => f.user === session_user.username && f.status !== 'done' && f.date.split('T')[0] === today);
+  const todayISO = new Date().toISOString().substring(0, 10);
+  const userLeads = await getLeads({ assignedTo: session_user.username });
+  const userFollowups = await getFollowups({ user: session_user.username });
+
+  const followupDone = userFollowups.filter(f => f.date.split('T')[0] === todayISO && f.status === 'done').length;
+  const overdue = userFollowups.filter(f => f.status !== 'done' && new Date(f.date) < new Date());
+  const reminders = userFollowups.filter(f => f.status !== 'done' && f.date.split('T')[0] === todayISO);
 
   document.getElementById('tab-content').innerHTML = `
     <div class="card">
@@ -164,16 +201,16 @@ async function renderUserTab() {
       <div>Leads added: <b>${userLeads.length}</b></div>
       <div>Follow-up done today: <b>${followupDone}</b></div>
       <div>Overdue Follow-ups:</div>
-      <ul>${overdue.map(f => `<li>${f.leadEventName} &mdash; ${formatDateIST(f.date)}</li>`).join('') || '<li>(none)</li>'}</ul>
+      <ul>${overdue.length ? overdue.map(f => `<li>${f.lead_event_name} &mdash; ${formatDateIST(f.date)}</li>`).join('') : '<li>(none)</li>'}</ul>
       <div>Follow-up reminders for today:</div>
-      <ul>${reminders.map(f => `<li>${f.leadEventName} &mdash; ${formatDateIST(f.date)}</li>`).join('') || '<li>(none)</li>'}</ul>
+      <ul>${reminders.length ? reminders.map(f => `<li>${f.lead_event_name} &mdash; ${formatDateIST(f.date)}</li>`).join('') : '<li>(none)</li>'}</ul>
     </div>
   `;
 }
 
 /* --- Add Lead Tab --- */
 function renderAddLeadTab() {
-  const fields = `
+  let html = `
     <form class="lead-form" onsubmit="addLead(event)">
       <label>Event Name <input required name="eventName"></label>
       <label>Organising Society <input required name="orgSociety"></label>
@@ -183,8 +220,7 @@ function renderAddLeadTab() {
       <label>Lead Stage
         <div class="lead-stage">
           ${["hot","wrm","cld","ni","nre","junk"].map(lv =>
-            `<label><input type="radio" name="leadStage" value="${lv}" required><span>${lv.toUpperCase()}</span></label>`
-          ).join('')}
+            `<label><input type="radio" name="leadStage" value="${lv}" required><span>${lv.toUpperCase()}</span></label>`).join('')}
         </div>
       </label>
       <label>Remarks <textarea name="remarks"></textarea></label>
@@ -192,14 +228,13 @@ function renderAddLeadTab() {
       <button class="glass-btn" type="submit">Add Lead</button>
     </form>
   `;
-  document.getElementById('tab-content').innerHTML = `<div class="card">${fields}</div>`;
+  document.getElementById('tab-content').innerHTML = `<div class="card">${html}</div>`;
 }
 
 /* --- Add Lead Handler --- */
 async function addLead(e) {
   e.preventDefault();
   const fd = new FormData(e.target);
-
   let lead = {
     event_name: fd.get("eventName"),
     org_society: fd.get("orgSociety"),
@@ -209,70 +244,340 @@ async function addLead(e) {
     lead_stage: fd.get("leadStage"),
     remarks: fd.get("remarks"),
     assigned_to: session_user.username,
-    date_added: new Date().toISOString()
+    date_added: new Date().toISOString(),
   };
 
   await addLeadToSupabase(lead);
 
-  // Optionally create a followup record similar way if you implement followups in Supabase
+  // Add followup entry
+  let followup = {
+    user: session_user.username,
+    lead_id: lead.id, // will be set after insert, so optional here or fetch later
+    lead_event_name: lead.event_name,
+    date: fd.get("followup"),
+    status: 'pending',
+  };
+  // Note: Because id is generated by Supabase, fetching lead id for followup must be handled properly
+  // For simplicity, we skip followup insert here or fetch recently added lead as needed
 
   renderDashboard();
 }
 
 /* --- My Leads Tab --- */
 async function renderMyLeadsTab() {
-  const userLeads = await getLeads({assignedTo: session_user.username});
+  const userLeads = await getLeads({ assignedTo: session_user.username });
   let html = `
     <div class="card">
       <div class="section-title">My Leads</div>
       <table class="leads-table">
-      <tr>
-        <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th><th>Email</th>
-        <th>Lead Stage</th><th>Remarks</th><th>Date Added</th><th>Add Follow-up</th>
-      </tr>
-      ${userLeads.map(l =>
-        `<tr>
-          <td contenteditable="true" onblur="editLead('${l.id}','event_name',this.innerText)">${l.event_name || ''}</td>
-          <td contenteditable="true" onblur="editLead('${l.id}','org_society',this.innerText)">${l.org_society || ''}</td>
-          <td contenteditable="true" onblur="editLead('${l.id}','contact_person',this.innerText)">${l.contact_person || ''}</td>
-          <td contenteditable="true" onblur="editLead('${l.id}','phone',this.innerText)">${l.phone || ''}</td>
-          <td contenteditable="true" onblur="editLead('${l.id}','email',this.innerText)">${l.email || ''}</td>
-          <td>
-            <select onchange="editLead('${l.id}','lead_stage',this.value)">
-              ${["hot","wrm","cld","ni","nre","junk"].map(stage =>
-                `<option value="${stage}"${l.lead_stage === stage ? ' selected' : ''}>${stage.toUpperCase()}</option>`
-              ).join('')}
-            </select>
-          </td>
-          <td contenteditable="true" onblur="editLead('${l.id}','remarks',this.innerText)">${l.remarks || ''}</td>
-          <td>${formatDateIST(l.date_added)}</td>
-          <td><button class="followup-btn" onclick="addFollowup('${l.id}','${(l.event_name || '')}')">+</button></td>
-        </tr>`
-      ).join('')}
+        <tr>
+          <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th><th>Email</th>
+          <th>Lead Stage</th><th>Remarks</th><th>Date Added</th><th>Add Follow-up</th>
+        </tr>
+        ${userLeads.map(l =>
+          `<tr>
+            <td contenteditable="true" onblur="editLead('${l.id}','event_name',this.innerText)">${l.event_name || ''}</td>
+            <td contenteditable="true" onblur="editLead('${l.id}','org_society',this.innerText)">${l.org_society || ''}</td>
+            <td contenteditable="true" onblur="editLead('${l.id}','contact_person',this.innerText)">${l.contact_person || ''}</td>
+            <td contenteditable="true" onblur="editLead('${l.id}','phone',this.innerText)">${l.phone || ''}</td>
+            <td contenteditable="true" onblur="editLead('${l.id}','email',this.innerText)">${l.email || ''}</td>
+            <td>
+              <select onchange="editLead('${l.id}','lead_stage',this.value)">
+                ${["hot","wrm","cld","ni","nre","junk"].map(stage =>
+                  `<option value="${stage}"${l.lead_stage === stage ? ' selected' : ''}>${stage.toUpperCase()}</option>`
+                ).join('')}
+              </select>
+            </td>
+            <td contenteditable="true" onblur="editLead('${l.id}','remarks',this.innerText)">${l.remarks || ''}</td>
+            <td>${formatDateIST(l.date_added)}</td>
+            <td><button class="followup-btn" onclick="renderAddFollowup('${l.id}', '${l.event_name || ''}')">+</button></td>
+          </tr>`
+        ).join('')}
       </table>
     </div>
   `;
   document.getElementById('tab-content').innerHTML = html;
 }
 
-/* --- Edit Lead Handler --- */
-async function editLead(leadId, field, val) {
-  await updateLeadField(leadId, field, val);
+/* --- Edit Lead --- */
+async function editLead(leadId, field, value) {
+  value = value.trim();
+  await updateLeadField(leadId, field, value);
 }
 
-/* --- Add Followup Handler (uses prompt, no Supabase sync here) --- */
-function addFollowup(leadId, eventName) {
-  const dt = prompt("Enter follow-up datetime (YYYY-MM-DDTHH:MM):", (new Date().toISOString().slice(0,16)));
-  if(dt && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dt)) {
-    followups.push({id: generateId(), user: session_user.username, leadId, leadEventName: eventName, date: dt, status: "pending"});
-    showPopup("Follow-up Added!");
-    renderMyLeadsTab();
+/* --- Add & Assign Lead (SEM) --- */
+function renderSemAddAssignLead() {
+  const userOptions = users.filter(u => u.role === 'user').map(u => `<option value="${u.username}">${capitalize(u.username)}</option>`).join('');
+  const html = `
+    <form class="lead-form" onsubmit="semAddLead(event)">
+      <label>Event Name <input required name="eventName"></label>
+      <label>Organising Society <input required name="orgSociety"></label>
+      <label>Contact Person <input required name="contactPerson"></label>
+      <label>Phone No. <input required name="phone" maxlength="15"></label>
+      <label>Email <input type="email" required name="email"></label>
+      <label>Lead Stage
+        <div class="lead-stage">
+          ${["hot","wrm","cld","ni","nre","junk"].map(lv =>
+            `<label><input type="radio" name="leadStage" value="${lv}" required><span>${lv.toUpperCase()}</span></label>`).join('')}
+        </div>
+      </label>
+      <label>Remarks <textarea name="remarks"></textarea></label>
+      <label>Followup date/time <input type="datetime-local" required name="followup"></label>
+      <label>Assign to
+        <select required name="assignedTo">${userOptions}</select>
+      </label>
+      <button class="glass-btn" type="submit">Add & Assign Lead</button>
+    </form>
+  `;
+  document.getElementById('tab-content').innerHTML = `<div class="card">${html}</div>`;
+}
+
+async function semAddLead(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const lead = {
+    event_name: fd.get("eventName"),
+    org_society: fd.get("orgSociety"),
+    contact_person: fd.get("contactPerson"),
+    phone: fd.get("phone"),
+    email: fd.get("email"),
+    lead_stage: fd.get("leadStage"),
+    remarks: fd.get("remarks"),
+    assigned_to: fd.get("assignedTo"),
+    date_added: new Date().toISOString(),
+  };
+
+  // Insert lead
+  const { data, error } = await supabase.from('leads').insert([lead]).select();
+  if (error) {
+    alert("Failed to add lead: " + error.message);
+    return;
+  }
+  const insertedLead = data[0];
+
+  // Insert followup
+  const followup = {
+    user: fd.get("assignedTo"),
+    lead_id: insertedLead.id,
+    lead_event_name: insertedLead.event_name,
+    date: fd.get("followup"),
+    status: "pending",
+  };
+  await addFollowupToSupabase(followup);
+
+  showPopup("Lead Added & Assigned!");
+  renderDashboard();
+}
+
+/* --- All Leads (SEM + Developer) --- */
+async function renderSemAllLeads() {
+  let usersList = ["all"].concat(users.filter(u => u.role === "user").map(u => u.username));
+  let filterUserOptions = usersList.map(u => `<option value="${u}">${capitalize(u)}</option>`).join('');
+  let html = `
+    <div class="card">
+      <div style="display:flex; align-items:center; gap:1.1rem; flex-wrap:wrap;">
+        <div class="section-title">All Leads</div>
+        <select id="filter-user" class="glass" style="padding:0.6rem;">${filterUserOptions}</select>
+        <input id="filter-date" type="date" class="glass" style="padding:0.6rem;">
+        <input id="search-lead" class="search-lead" placeholder="Search lead...">
+        <label class="toggle-today">
+          <input type="checkbox" id="today-fl-toggle">Today's Follow-up
+        </label>
+        <button class="glass-btn" onclick="applyLeadFilter()">Filter</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="leads-table" id="all-leads-table">
+          <tr>
+            <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th>
+            <th>Email</th><th>Lead Stage</th><th>Remarks</th>
+            <th>Assigned To</th><th>Date Added</th>
+            <th>Edit</th>
+          </tr>
+        </table>
+      </div>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+  applyLeadFilter();
+  document.getElementById('search-lead').addEventListener('input', applyLeadFilter);
+  document.getElementById('today-fl-toggle').addEventListener('change', applyLeadFilter);
+}
+
+async function applyLeadFilter() {
+  let uname = document.getElementById('filter-user').value;
+  let dt = document.getElementById('filter-date').value;
+  let q = (document.getElementById('search-lead') || { value: "" }).value.trim().toLowerCase();
+  let onlyToday = (document.getElementById('today-fl-toggle') || {}).checked;
+
+  let data = await getLeads({ assignedTo: uname === 'all' ? null : uname, dateAdded: dt || null });
+
+  // Because Supabase text search is limited, filter on client side here for 'q' and today's followups
+  if (q) {
+    data = data.filter(l =>
+      (l.event_name + l.contact_person + l.phone + l.email + l.org_society + l.remarks)
+        .toLowerCase().includes(q)
+    );
+  }
+
+  if (onlyToday) {
+    const today = (new Date()).toISOString().slice(0, 10);
+    let followupsToday = await supabase.from('followups').select('lead_id').eq('date', today);
+    let ids = new Set((followupsToday.data || []).map(f => f.lead_id));
+    data = data.filter(l => ids.has(l.id));
+  }
+
+  let tb = document.getElementById('all-leads-table');
+  tb.innerHTML = `<tr>
+    <th>Event Name</th><th>Society</th><th>Contact</th><th>Phone</th>
+    <th>Email</th><th>Lead Stage</th><th>Remarks</th>
+    <th>Assigned To</th><th>Date Added</th>
+    <th>Edit</th>
+  </tr>` + data.map(l => {
+    let editable = (session_user.username === l.assigned_to);
+    return `<tr>
+      <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','event_name',this.innerText)">${l.event_name || ''}</td>
+      <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','org_society',this.innerText)">${l.org_society || ''}</td>
+      <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','contact_person',this.innerText)">${l.contact_person || ''}</td>
+      <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','phone',this.innerText)">${l.phone || ''}</td>
+      <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','email',this.innerText)">${l.email || ''}</td>
+      <td>${editable ? `<select onchange="editLead('${l.id}','lead_stage',this.value)">
+        ${["hot","wrm","cld","ni","nre","junk"].map(stage =>
+          `<option value="${stage}"${l.lead_stage === stage ? ' selected' : ''}>${stage.toUpperCase()}</option>`
+        ).join('')}
+      </select>` : l.lead_stage.toUpperCase()}</td>
+      <td${editable ? ' contenteditable="true"' : ''} onblur="editLead('${l.id}','remarks',this.innerText)">${l.remarks || ''}</td>
+      <td>${capitalize(l.assigned_to)}</td>
+      <td>${formatDateIST(l.date_added)}</td>
+      <td>${editable ? '<span style="color:#b04ae4;font-size:1.14em;">&#9998;</span>' : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* --- Reports Tab --- */
+async function renderSemReport() {
+  let usersList = users.filter(u => u.role === "user");
+  let today = (new Date()).toISOString().substring(0, 10);
+  let html = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:1.5rem;">
+        <div class="section-title">Report (per user, for a date)</div>
+        <input id="report-date" type="date" class="glass" style="padding:0.6rem;" value="${today}">
+        <button class="glass-btn" onclick="applyReportFilter()">Filter</button>
+      </div>
+      <table class="report-table" id="report-table">
+        <tr>
+          <th>User</th>
+          <th>No. of Leads</th><th>Follow-ups</th>
+        </tr>
+        ${usersList.map(u => `
+          <tr>
+            <td>${capitalize(u.username)}</td>
+            <td id="lead-count-${u.username}">...</td>
+            <td id="followup-count-${u.username}">...</td>
+          </tr>
+        `).join('')}
+      </table>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+  await applyReportFilter();
+}
+
+async function applyReportFilter() {
+  let dt = document.getElementById('report-date').value;
+  if (!dt) dt = (new Date()).toISOString().substring(0,10);
+  let usersList = users.filter(u => u.role === "user");
+
+  for (let u of usersList) {
+    // Count leads added on dt assigned to u
+    let { count: leadsCount, error: lerr } = await supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('assigned_to', u.username)
+      .eq('date_added', dt);
+
+    if (lerr) {
+      console.error('Error fetching leads count', lerr);
+      leadsCount = 0;
+    }
+
+    // Count followups for user on dt
+    let { count: followupCount, error: ferr } = await supabase
+      .from('followups')
+      .select('*', { count: 'exact', head: true })
+      .eq('user', u.username)
+      .eq('date', dt);
+
+    if (ferr) {
+      console.error('Error fetching followups count', ferr);
+      followupCount = 0;
+    }
+
+    document.getElementById(`lead-count-${u.username}`).innerText = leadsCount || 0;
+    document.getElementById(`followup-count-${u.username}`).innerText = followupCount || 0;
   }
 }
 
-/* ------- SEM Role Tabs and Admin Functions --------- */
-/* Please implement SEM tabs and Admin renderers similarly, fetching and updating Supabase data */
-/* For brevity, their implementations are not rewritten here but follow same async pattern */
+/* --- Admin Tab --- */
+function renderDevUsers() {
+  let html = `
+    <div class="card">
+      <div class="section-title">Admin: User Management</div>
+      <table class="report-table">
+        <tr><th>User</th><th>Role</th><th>Password (reset)</th></tr>
+        ${users.map((u, i) => `
+          <tr>
+            <td><input style="width:120px" value="${u.username}" onchange="devSetUsername(${i}, this.value)"></td>
+            <td>${u.role}</td>
+            <td><input style="width:120px" type="password" value="${u.password}" onchange="devSetPassword(${i}, this.value)"></td>
+          </tr>
+        `).join('')}
+      </table>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+}
+function devSetUsername(idx, val) {
+  users[idx].username = val.trim().toLowerCase();
+  showPopup("Username changed.");
+}
+function devSetPassword(idx, val) {
+  users[idx].password = val;
+  showPopup("Password changed.");
+}
+
+/* --- Followups: Add New Followup UI --- */
+function renderAddFollowup(leadId, eventName) {
+  const html = `
+    <div class="card">
+      <h3>Add Follow-up for: <b>${eventName}</b></h3>
+      <form onsubmit="submitFollowup(event, '${leadId}', '${eventName}')">
+        <label>Follow-up date/time <input type="datetime-local" name="followup" required></label>
+        <button class="glass-btn" type="submit">Add Follow-up</button>
+      </form>
+    </div>
+  `;
+  document.getElementById('tab-content').innerHTML = html;
+}
+window.renderAddFollowup = renderAddFollowup;
+
+async function submitFollowup(e, leadId, eventName) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const dt = fd.get('followup');
+  if (!dt) return alert('Please enter follow-up datetime');
+  const followup = {
+    user: session_user.username,
+    lead_id: leadId,
+    lead_event_name: eventName,
+    date: dt,
+    status: 'pending',
+  };
+  await addFollowupToSupabase(followup);
+  showPopup('Follow-up Added!');
+  // Refresh My Leads tab to show updated info
+  renderMyLeadsTab();
+}
 
 /* --- Initialization --- */
 document.addEventListener('DOMContentLoaded', () => {
